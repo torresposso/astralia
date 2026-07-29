@@ -1,0 +1,12 @@
+---
+// FormError.astro
+// Shared error message display for Alpine.js forms.
+// The parent Alpine component must have an `error` property.
+// Renders nothing (`x-show` hides it) when `error` is falsy.
+---
+
+<p
+  x-show="error"
+  x-text="error"
+  class="text-red-500 text-sm mt-2 text-center"
+></p>

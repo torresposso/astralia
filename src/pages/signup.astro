@@ -1,0 +1,152 @@
+---
+import Base from "@/layouts/Base.astro";
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import FormError from "@/components/FormError.astro";
+import SubmitButton from "@/components/SubmitButton.astro";
+
+const session = Astro.locals.session;
+if (session) return Astro.redirect("/dashboard");
+---
+
+<Base title="Crear Cuenta — Astralia">
+  <AuthLayout title="Crear Cuenta">
+    <form x-data="signupForm" @submit.prevent="submit" class="space-y-4">
+      <!-- Name -->
+      <div>
+        <label
+          for="name"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Nombre
+        </label>
+        <input
+          x-model="name"
+          type="text"
+          id="name"
+          required
+          placeholder="Tu nombre"
+          autocomplete="name"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-transparent"
+        />
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label
+          for="email"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Correo electrónico
+        </label>
+        <input
+          x-model="email"
+          type="email"
+          id="email"
+          required
+          placeholder="tu@email.com"
+          autocomplete="email"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-transparent"
+        />
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label
+          for="password"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Contraseña
+        </label>
+        <input
+          x-model="password"
+          type="password"
+          id="password"
+          required
+          minlength="8"
+          placeholder="Mínimo 8 caracteres"
+          autocomplete="new-password"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-transparent"
+        />
+      </div>
+
+      <!-- Confirm Password -->
+      <div>
+        <label
+          for="confirmPassword"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Confirmar contraseña
+        </label>
+        <input
+          x-model="confirmPassword"
+          type="password"
+          id="confirmPassword"
+          required
+          minlength="8"
+          placeholder="Repite la contraseña"
+          autocomplete="new-password"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-transparent"
+        />
+      </div>
+
+      <FormError />
+      <SubmitButton text="Crear Cuenta" loadingText="Creando cuenta..." />
+    </form>
+
+    <p class="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+      ¿Ya tienes cuenta? <a
+        href="/signin"
+        class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
+      >
+        Inicia sesión
+      </a>
+    </p>
+  </AuthLayout>
+</Base>
+
+<script>
+import { registerComponent } from "@/lib/alpine-utils";
+
+registerComponent("signupForm", () => ({
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  error: "",
+  loading: false,
+
+  async submit() {
+    this.loading = true;
+    this.error = "";
+
+    if (!this.name.trim()) return this.setError("Ingresa tu nombre");
+    if (!this.email.trim()) return this.setError("Ingresa tu correo electrónico");
+    if (this.password.length < 8) return this.setError("La contraseña debe tener al menos 8 caracteres");
+    if (this.password !== this.confirmPassword) return this.setError("Las contraseñas no coinciden");
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: this.name.trim(),
+          email: this.email.trim(),
+          password: this.password,
+          confirmPassword: this.confirmPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return this.setError(data.error || "Error al registrarse");
+
+      if (data.redirectTo) window.location.href = data.redirectTo;
+    } catch {
+      this.setError("Error de conexión. Intenta de nuevo.");
+    }
+  },
+
+  setError(msg) {
+    this.error = msg;
+    this.loading = false;
+  },
+}));
+</script>

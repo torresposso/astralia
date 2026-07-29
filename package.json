@@ -9,9 +9,33 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "astro": "^7.1.6"
+    "@astrojs/alpinejs": "^0.4.0",
+    "@astrojs/node": "^11.0.0",
+    "@libsql/client": "^0.17.4",
+    "@tailwindcss/vite": "^4.2.0",
+    "alpinejs": "^3.14.0",
+    "astro": "^7.1.6",
+    "better-auth": "^1.6.25",
+    "drizzle-orm": "^0.45.2",
+    "htmx.org": "^2.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/expect": "^4.1.10",
+    "@vitest/runner": "^4.1.10",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }

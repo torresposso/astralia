@@ -1,0 +1,92 @@
+---
+import Base from '@/layouts/Base.astro'
+import FormError from '@/components/FormError.astro'
+
+const session = Astro.locals.session
+if (!session) return Astro.redirect('/signin')
+
+const user = Astro.locals.user
+const initial = (user?.name || user?.email || '?').charAt(0).toUpperCase()
+---
+
+<Base title="Dashboard — Astralia">
+  <!-- Navbar -->
+  <nav x-data="dashboardPage" class="flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+    <a href="/" class="text-xl font-bold text-indigo-600 dark:text-indigo-400">Astralia</a>
+    <div class="relative">
+      <button
+        @click="logout"
+        :disabled="loading"
+        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 cursor-pointer"
+      >
+        <span x-text="buttonText">Cerrar Sesión</span>
+      </button>
+      <FormError />
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+      Bienvenido, {user?.name || user?.email}
+    </h1>
+
+    <div class="grid gap-6">
+      <!-- Profile Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            {initial}
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{user?.name}</h2>
+            <p class="text-gray-600 dark:text-gray-400">{user?.email}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Miembro desde {new Date(user?.createdAt || '').toLocaleDateString('es-CO')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coming Soon -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center">
+        <p class="text-gray-500 dark:text-gray-400 text-lg">
+          🚀 Más funcionalidades próximamente...
+        </p>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+import { registerComponent } from '@/lib/alpine-utils'
+
+registerComponent('dashboardPage', () => ({
+  loading: false,
+  error: '',
+
+  get buttonText() {
+    return this.loading ? 'Cerrando...' : 'Cerrar Sesión'
+  },
+
+  async logout() {
+    this.loading = true
+    this.error = ''
+
+    try {
+      const res = await fetch('/api/auth/signout', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        this.error = data.error || 'Error al cerrar sesión. Intenta de nuevo.'
+        this.loading = false
+        return
+      }
+
+      window.location.href = data.redirectTo || '/'
+    } catch {
+      this.error = 'Error al cerrar sesión. Intenta de nuevo.'
+      this.loading = false
+    }
+  },
+}))
+</script>

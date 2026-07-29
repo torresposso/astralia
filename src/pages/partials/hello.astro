@@ -1,0 +1,20 @@
+---
+export const partial = true;
+export const prerender = false;
+
+const timestamp = new Date().toLocaleString('es-CO', {
+  timeZone: 'America/Bogota',
+});
+---
+
+<div class="p-4 bg-emerald-50 dark:bg-emerald-950 rounded-lg border border-emerald-200 dark:border-emerald-800">
+  <p class="text-emerald-800 dark:text-emerald-200 text-lg">
+    🪐 ¡Hola desde el servidor Astro!
+  </p>
+  <p class="text-emerald-600 dark:text-emerald-400 text-sm mt-2">
+    Generado el {timestamp}
+  </p>
+  <p class="text-emerald-600 dark:text-emerald-400 text-sm">
+    Esto es un partial SSR renderizado por Astro y cargado vía HTMX.
+  </p>
+</div>

@@ -1,0 +1,21 @@
+---
+// SubmitButton.astro
+// Shared submit button with Alpine.js loading state.
+// The parent Alpine component must have `loading` property.
+// Renders a disabled button with loading or default text.
+
+interface Props {
+  text?: string
+  loadingText?: string
+}
+
+const { text = 'Enviar', loadingText = 'Enviando...' } = Astro.props
+---
+
+<button
+  type="submit"
+  :disabled="loading"
+  class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors"
+>
+  <span x-text={`loading ? '${loadingText}' : '${text}'`}>{text}</span>
+</button>
