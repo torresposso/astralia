@@ -2,38 +2,27 @@
  * DrizzleBirthDataRepository Unit Tests
  *
  * Tests for the concrete IBirthDataRepository implementation using Drizzle.
- * The @/db module is fully mocked — we only test the repository's orchestration
- * logic (calling db.insert, mapping domain objects, handling errors), not drizzle itself.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DrizzleBirthDataRepository } from "./DrizzleBirthDataRepository";
 import { BirthData } from "@/domain/birth/BirthData.vo";
 
-// ---------------------------------------------------------------------------
-// Mock @/db — vi.mock is hoisted to the top by vitest
-// ---------------------------------------------------------------------------
 vi.mock("@/db", () => ({
   db: {
     insert: vi.fn().mockReturnValue({
       values: vi.fn().mockResolvedValue(undefined),
     }),
+    select: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Returns the mocked db reference for assertion calls. */
 async function getMockedDb() {
   const { db } = await import("@/db");
   return db;
 }
-
-// ---------------------------------------------------------------------------
-// Shared test fixtures
-// ---------------------------------------------------------------------------
 
 const validProps = {
   userId: "user_123",
@@ -45,10 +34,6 @@ const validProps = {
   timezone: "America/Bogota",
   placeName: "Cartagena, Bolívar, Colombia",
 };
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
 
 describe("DrizzleBirthDataRepository", () => {
   let repository: DrizzleBirthDataRepository;
@@ -66,16 +51,14 @@ describe("DrizzleBirthDataRepository", () => {
     }
   });
 
-  // -----------------------------------------------------------------------
-  // create
-  // -----------------------------------------------------------------------
   describe("create", () => {
     it("should insert birth data into the database and return success", async () => {
       const result = await repository.create(validBirthData);
 
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.data).toBe(validBirthData);
+        expect(result.data.userId).toBe(validBirthData.userId);
+        expect(result.data.id).toBeDefined();
       }
     });
 
@@ -91,7 +74,6 @@ describe("DrizzleBirthDataRepository", () => {
 
     it("should call db.insert(...).values() with correct mapped columns", async () => {
       const mockDb = await getMockedDb();
-      // Spy on the values mock
       const mockValues = vi.fn().mockResolvedValue(undefined);
       vi.mocked(mockDb.insert).mockReturnValue({ values: mockValues } as any);
 
@@ -111,7 +93,6 @@ describe("DrizzleBirthDataRepository", () => {
       expect(valuesArg.longitude).toBe(-75.5);
       expect(valuesArg.timezone).toBe("America/Bogota");
       expect(valuesArg.placeName).toBe("Cartagena, Bolívar, Colombia");
-      // id should be a UUID string
       expect(valuesArg.id).toEqual(expect.any(String));
     });
 
@@ -161,6 +142,83 @@ describe("DrizzleBirthDataRepository", () => {
       if (!result.ok) {
         expect(result.error).toContain("desconocido");
       }
+    });
+  });
+
+  describe("findById", () => {
+    it("should return BirthData when record exists", async () => {
+      const mockDb = await getMockedDb();
+      vi.mocked(mockDb.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([
+              {
+                id: "bd_123",
+                userId: "user_123",
+                birthYear: 1990,
+                birthMonth: 6,
+                birthDay: 10,
+                birthHour: 10,
+                birthMinute: 30,
+                timeUnknown: false,
+                latitude: 10.39,
+                longitude: -75.5,
+                timezone: "America/Bogota",
+                placeName: "Cartagena, Bolívar, Colombia",
+              },
+            ]),
+          }),
+        }),
+      } as any);
+
+      const result = await repository.findById("bd_123");
+
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe("bd_123");
+      expect(result?.placeName).toBe("Cartagena, Bolívar, Colombia");
+    });
+
+    it("should return null when record does not exist or db throws", async () => {
+      const mockDb = await getMockedDb();
+      vi.mocked(mockDb.select).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      } as any);
+
+      const result = await repository.findById("non_existent");
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("update", () => {
+    it("should update record in db and return updated BirthData", async () => {
+      const mockDb = await getMockedDb();
+      const mockSet = vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue(undefined),
+      });
+      vi.mocked(mockDb.update).mockReturnValue({ set: mockSet } as any);
+
+      const result = await repository.update("bd_123", validBirthData);
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.data.id).toBe("bd_123");
+      }
+    });
+  });
+
+  describe("delete", () => {
+    it("should delete record from db and return true", async () => {
+      const mockDb = await getMockedDb();
+      vi.mocked(mockDb.delete).mockReturnValue({
+        where: vi.fn().mockResolvedValue({ rowsAffected: 1 }),
+      } as any);
+
+      const result = await repository.delete("bd_123");
+      expect(result).toBe(true);
     });
   });
 });

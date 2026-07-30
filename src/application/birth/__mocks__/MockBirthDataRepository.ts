@@ -2,15 +2,6 @@
  * Mock BirthData Repository
  *
  * Shared mock for IBirthDataRepository used across all Application test files.
- *
- * Two modes:
- * - Normal mode: create succeeds with a default BirthData
- * - Fail mode: create returns { ok: false, error }
- *
- * Helpers:
- * - withBirthData(birthData): customize the returned BirthData
- * - withFailure(): switch to fail mode
- * - reset(): reset to default state
  */
 
 import { vi } from 'vitest'
@@ -18,12 +9,15 @@ import type { IBirthDataRepository, BirthDataResult } from '@/domain/birth/repos
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
 export class MockBirthDataRepository implements IBirthDataRepository {
-  private mockBirthData: BirthData | null = null
+  private store = new Map<string, BirthData>()
   private shouldFail = false
-  private failMessage = 'Error al guardar los datos de nacimiento'
+  private failMessage = 'Error en el repositorio de datos de nacimiento'
 
   // Spy-able methods for assertion
   readonly createSpy = vi.fn<IBirthDataRepository['create']>()
+  readonly findByIdSpy = vi.fn<IBirthDataRepository['findById']>()
+  readonly updateSpy = vi.fn<IBirthDataRepository['update']>()
+  readonly deleteSpy = vi.fn<IBirthDataRepository['delete']>()
 
   constructor() {
     this.setupDefaultBehavior()
@@ -31,15 +25,27 @@ export class MockBirthDataRepository implements IBirthDataRepository {
 
   // ---- IBirthDataRepository implementation ----
 
-  async create(_birthData: BirthData): Promise<BirthDataResult> {
-    return this.createSpy(_birthData)
+  async create(birthData: BirthData): Promise<BirthDataResult> {
+    return this.createSpy(birthData)
+  }
+
+  async findById(id: string): Promise<BirthData | null> {
+    return this.findByIdSpy(id)
+  }
+
+  async update(id: string, birthData: BirthData): Promise<BirthDataResult> {
+    return this.updateSpy(id, birthData)
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return this.deleteSpy(id)
   }
 
   // ---- Helpers ----
 
-  /** Configure the mock to succeed with a custom BirthData (overrides pass-through) */
-  withBirthData(birthData: BirthData): this {
-    this.mockBirthData = birthData
+  /** Seed the mock store with a BirthData */
+  seed(id: string, birthData: BirthData): this {
+    this.store.set(id, birthData)
     return this
   }
 
@@ -53,18 +59,41 @@ export class MockBirthDataRepository implements IBirthDataRepository {
   /** Reset to default state and clear spies */
   reset(): this {
     this.shouldFail = false
-    this.failMessage = 'Error al guardar los datos de nacimiento'
-    this.mockBirthData = null
+    this.failMessage = 'Error en el repositorio de datos de nacimiento'
+    this.store.clear()
     this.createSpy.mockReset()
+    this.findByIdSpy.mockReset()
+    this.updateSpy.mockReset()
+    this.deleteSpy.mockReset()
     this.setupDefaultBehavior()
     return this
   }
 
-  /** Set up default spy implementations (happy path) */
+  /** Set up default spy implementations */
   private setupDefaultBehavior(): void {
     this.createSpy.mockImplementation(async (birthData: BirthData) => {
       if (this.shouldFail) return { ok: false, error: this.failMessage }
-      return { ok: true, data: this.mockBirthData ?? birthData }
+      const id = birthData.id ?? 'mock_birth_data_id'
+      const saved = BirthData.from({ ...birthData.toJSON(), id, date: birthData.date, time: birthData.time } as any)
+      this.store.set(id, saved)
+      return { ok: true, data: saved }
+    })
+
+    this.findByIdSpy.mockImplementation(async (id: string) => {
+      if (this.shouldFail) return null
+      return this.store.get(id) ?? null
+    })
+
+    this.updateSpy.mockImplementation(async (id: string, birthData: BirthData) => {
+      if (this.shouldFail) return { ok: false, error: this.failMessage }
+      const updated = BirthData.from({ ...birthData.toJSON(), id, date: birthData.date, time: birthData.time } as any)
+      this.store.set(id, updated)
+      return { ok: true, data: updated }
+    })
+
+    this.deleteSpy.mockImplementation(async (id: string) => {
+      if (this.shouldFail) return false
+      return this.store.delete(id)
     })
   }
 }

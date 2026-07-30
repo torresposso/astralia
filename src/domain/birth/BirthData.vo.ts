@@ -16,6 +16,7 @@
  */
 
 export interface BirthDataProps {
+  id?: string
   userId: string
   date: { year: number; month: number; day: number }
   time?: { hour: number; minute: number } | null
@@ -27,6 +28,7 @@ export interface BirthDataProps {
 }
 
 export class BirthData {
+  private readonly _id?: string
   private readonly _userId: string
   private readonly _date: { year: number; month: number; day: number }
   private readonly _time: { hour: number; minute: number } | null
@@ -37,6 +39,7 @@ export class BirthData {
   private readonly _placeName: string
 
   private constructor(props: BirthDataProps) {
+    this._id = props.id
     this._userId = props.userId
     this._date = props.date
     this._time = props.time ?? null
@@ -130,6 +133,10 @@ export class BirthData {
 
   // ---- Getters ----
 
+  get id(): string | undefined {
+    return this._id
+  }
+
   get userId(): string {
     return this._userId
   }
@@ -173,6 +180,7 @@ export class BirthData {
   /** Compares two BirthData value objects by all properties */
   equals(other: BirthData): boolean {
     return (
+      this._id === other._id &&
       this._userId === other._userId &&
       this._date.year === other._date.year &&
       this._date.month === other._date.month &&
@@ -198,6 +206,7 @@ export class BirthData {
   /** Returns a plain object representation for serialization */
   toJSON(): Record<string, unknown> {
     return {
+      ...(this._id ? { id: this._id } : {}),
       userId: this._userId,
       date: { ...this._date },
       time: this._time ? { ...this._time } : null,
