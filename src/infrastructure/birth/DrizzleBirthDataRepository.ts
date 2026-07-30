@@ -3,9 +3,6 @@
  *
  * Concrete implementation of IBirthDataRepository using Drizzle ORM.
  * Maps between the domain BirthData value object and the birth_data table.
- *
- * Lives in the infrastructure layer — depends on the domain port (IBirthDataRepository),
- * Drizzle ORM, and the DB schema.
  */
 
 import { eq } from "drizzle-orm";
@@ -88,6 +85,39 @@ export class DrizzleBirthDataRepository implements IBirthDataRepository {
     }
   }
 
+  async findByUserId(userId: string): Promise<BirthData | null> {
+    try {
+      const rows = await db
+        .select()
+        .from(birthDataTable)
+        .where(eq(birthDataTable.userId, userId))
+        .limit(1);
+
+      if (rows.length === 0) return null;
+
+      const row = rows[0];
+      const hasTime = row.birthHour !== null && row.birthMinute !== null;
+
+      return BirthData.from({
+        id: row.id,
+        userId: row.userId,
+        date: {
+          year: row.birthYear,
+          month: row.birthMonth,
+          day: row.birthDay,
+        },
+        time: hasTime && !row.timeUnknown ? { hour: row.birthHour!, minute: row.birthMinute! } : null,
+        timeUnknown: Boolean(row.timeUnknown),
+        latitude: row.latitude,
+        longitude: row.longitude,
+        timezone: row.timezone,
+        placeName: row.placeName,
+      });
+    } catch {
+      return null;
+    }
+  }
+
   async update(id: string, data: BirthData): Promise<BirthDataResult> {
     try {
       await db
@@ -135,7 +165,6 @@ export class DrizzleBirthDataRepository implements IBirthDataRepository {
         .delete(birthDataTable)
         .where(eq(birthDataTable.id, id));
 
-      // In Drizzle SQLite, result is an object containing rowsAffected or similar
       const rowsAffected = (result as { rowsAffected?: number })?.rowsAffected;
       if (typeof rowsAffected === 'number') {
         return rowsAffected > 0;

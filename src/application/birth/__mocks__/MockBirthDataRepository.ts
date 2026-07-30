@@ -16,6 +16,7 @@ export class MockBirthDataRepository implements IBirthDataRepository {
   // Spy-able methods for assertion
   readonly createSpy = vi.fn<IBirthDataRepository['create']>()
   readonly findByIdSpy = vi.fn<IBirthDataRepository['findById']>()
+  readonly findByUserIdSpy = vi.fn<IBirthDataRepository['findByUserId']>()
   readonly updateSpy = vi.fn<IBirthDataRepository['update']>()
   readonly deleteSpy = vi.fn<IBirthDataRepository['delete']>()
 
@@ -31,6 +32,10 @@ export class MockBirthDataRepository implements IBirthDataRepository {
 
   async findById(id: string): Promise<BirthData | null> {
     return this.findByIdSpy(id)
+  }
+
+  async findByUserId(userId: string): Promise<BirthData | null> {
+    return this.findByUserIdSpy(userId)
   }
 
   async update(id: string, birthData: BirthData): Promise<BirthDataResult> {
@@ -63,6 +68,7 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     this.store.clear()
     this.createSpy.mockReset()
     this.findByIdSpy.mockReset()
+    this.findByUserIdSpy.mockReset()
     this.updateSpy.mockReset()
     this.deleteSpy.mockReset()
     this.setupDefaultBehavior()
@@ -82,6 +88,14 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     this.findByIdSpy.mockImplementation(async (id: string) => {
       if (this.shouldFail) return null
       return this.store.get(id) ?? null
+    })
+
+    this.findByUserIdSpy.mockImplementation(async (userId: string) => {
+      if (this.shouldFail) return null
+      for (const data of this.store.values()) {
+        if (data.userId === userId) return data
+      }
+      return null
     })
 
     this.updateSpy.mockImplementation(async (id: string, birthData: BirthData) => {

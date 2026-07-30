@@ -18,6 +18,9 @@ export interface IBirthDataRepository {
   /** Find a BirthData record by id. Returns the BirthData or null if not found. */
   findById(id: string): Promise<BirthData | null>
 
+  /** Find a BirthData record by userId. Returns the BirthData or null if not found. */
+  findByUserId(userId: string): Promise<BirthData | null>
+
   /** Update an existing BirthData record by id. Returns the updated BirthData or an error. */
   update(id: string, birthData: BirthData): Promise<BirthDataResult>
 

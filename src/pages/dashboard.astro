@@ -1,12 +1,19 @@
 ---
 import Base from '@/layouts/Base.astro'
 import FormError from '@/components/FormError.astro'
+import BirthDataCard from '@/components/BirthDataCard.astro'
+import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 
 const session = Astro.locals.session
 if (!session) return Astro.redirect('/signin')
 
-const user = Astro.locals.user
+const user = Astro.locals.user!
 const initial = (user?.name || user?.email || '?').charAt(0).toUpperCase()
+
+// SSR fetch user's saved birth data
+const repository = new DrizzleBirthDataRepository()
+const birthData = await repository.findByUserId(user.id)
+const initialData = birthData ? birthData.toJSON() : null
 ---
 
 <Base title="Dashboard — Astralia">
@@ -26,14 +33,14 @@ const initial = (user?.name || user?.email || '?').charAt(0).toUpperCase()
   </nav>
 
   <!-- Main Content -->
-  <main class="max-w-4xl mx-auto px-6 py-8">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+  <main class="max-w-4xl mx-auto px-6 py-8 space-y-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
       Bienvenido, {user?.name || user?.email}
     </h1>
 
     <div class="grid gap-6">
       <!-- Profile Card -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 border border-gray-100 dark:border-gray-700/60">
         <div class="flex items-center gap-4">
           <div class="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-2xl font-bold text-indigo-600 dark:text-indigo-400">
             {initial}
@@ -48,12 +55,8 @@ const initial = (user?.name || user?.email || '?').charAt(0).toUpperCase()
         </div>
       </div>
 
-      <!-- Coming Soon -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 text-center">
-        <p class="text-gray-500 dark:text-gray-400 text-lg">
-          🚀 Más funcionalidades próximamente...
-        </p>
-      </div>
+      <!-- Birth Data Section -->
+      <BirthDataCard initialData={initialData} userId={user.id} />
     </div>
   </main>
 </Base>
