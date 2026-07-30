@@ -217,7 +217,9 @@ describe('GET, PUT, DELETE /api/birth-data/[id]', () => {
       } as any)
 
       vi.mocked(db.delete).mockReturnValue({
-        where: vi.fn().mockResolvedValue({ rowsAffected: 1 }),
+        where: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([{ id: 'bd_123' }]),
+        }),
       } as any)
 
       const response = await container.renderToResponse(idEndpoint, {

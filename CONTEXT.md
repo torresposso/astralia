@@ -73,13 +73,43 @@ _Avoid_: toUT, Caelus converter
 The house system used when Birth Time is unknown. Every house cusp equals the corresponding sign degree. A warning is displayed to the User clarifying that house positions are approximate.
 _Avoid_: Casas enteras, Whole Sign houses
 
-**Chart** (next — depends on Birth Data):
-An astrological natal chart computed for a User based on their birth date, time, and location. Contains planetary positions, houses, aspects, and interpretations. Requires fully resolved Birth Data (including UT conversion) before it can be calculated.
+**Additional Point**:
+Punto adicional en el chart: Nodo Norte, Nodo Sur, Parte de la Fortuna, Lilith (Luna Negra).
+
+**Angles**:
+Ángulos cardinales del chart: Ascendente (ASC), Medio Cielo (MC), Descendente (DESC), Fondo del Cielo (IC).
+
+**Aspect**:
+Aspecto entre dos planetas/objetos: tipo (Conjunction, Sextile, Square, Trine, Opposition), orbe, y si está aplicándose o separándose.
+
+**CaelusChartCalculator**:
+Implementación en Infrastructure de IChartCalculator usando la librería `caelus`.
+
+**Chart**:
+Carta astral calculada. Value Object efímero, no se persiste. Se calcula on-the-fly a partir de Birth Data + ChartPreferences.
 _Avoid_: Carta, horoscope, birth chart
 
-**Natal Chart** (next):
-Synonym for Chart when referring specifically to the moment of birth, not transit or progressed charts.
+**Chart Calculator**:
+Domain Service (interfaz `IChartCalculator`) que dado Birth Data en UT y opciones de cálculo, produce un NatalChart.
+
+**ChartPreferences**:
+Preferencias de cálculo: House System, Zodiac, orbs, aspectos visibles, objetos. Por ahora defaults (Placidus, Tropical, 10°), personalización futura.
+
+**House Cusp**:
+Cúspide de una casa astrológica (1-12), con signo y grado.
+
+**House System**:
+Sistema de casas usado para el cálculo. Valor por defecto: Placidus.
+
+**Natal Chart**:
+Tipo específico de Chart que representa la carta natal de una persona en el momento de su nacimiento.
 _Avoid_: Carta natal
+
+**NatalChart**:
+Value Object del dominio que contiene planets, angles, houses, aspects, y additionalPoints. Inmutable, calculado por IChartCalculator.
+
+**Planet Position**:
+Posición de un planeta/objeto celeste: planeta, signo, grado, minuto, casa, y flag retrógrado.
 
 **Email**:
 A User's email address. Must be unique across all users. Used as the identifier for sign in.

@@ -9,38 +9,24 @@
  */
 
 import type { APIRoute } from 'astro'
+import { parseAndAuthenticateRequest } from './controllerHelper'
 import { CreateBirthDataUseCase } from '@/application/birth/CreateBirthDataUseCase'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
 
-export const POST: APIRoute = async ({ request }) => {
-  // 1. Validate Content-Type
-  if (request.headers.get('Content-Type') !== 'application/json') {
-    return new Response(
-      JSON.stringify({ error: 'Content-Type debe ser application/json' }),
-      { status: 415, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
+export const POST: APIRoute = async (context) => {
+  const req = await parseAndAuthenticateRequest(context, { requireJsonBody: true })
+  if (!req.ok) return req.response
 
-  // 2. Parse JSON
-  let body: Record<string, unknown>
-  try {
-    body = await request.json()
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'El cuerpo de la solicitud no es JSON válido' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
+  const { userId, body = {} } = req.data
 
-  // 3. Instantiate Use Case with DrizzleBirthDataRepository and CaelusBirthConverter
   const useCase = new CreateBirthDataUseCase(
     new DrizzleBirthDataRepository(),
     new CaelusBirthConverter(),
   )
 
   const result = await useCase.execute({
-    userId: (body.userId as string) ?? '',
+    userId,
     date: (body.date as { year: number; month: number; day: number }) ?? { year: 0, month: 0, day: 0 },
     time: body.time as { hour: number; minute: number } | null | undefined,
     timeUnknown: (body.timeUnknown as boolean) ?? false,

@@ -45,11 +45,13 @@ vi.mock('@/db', () => ({
       })),
     })),
     delete: vi.fn().mockImplementation(() => ({
-      where: vi.fn().mockImplementation(async () => {
-        const count = dbStore.length
-        dbStore.length = 0
-        return { rowsAffected: count }
-      }),
+      where: vi.fn().mockImplementation(() => ({
+        returning: vi.fn().mockImplementation(async () => {
+          const deleted = dbStore.map((row) => ({ id: row.id }))
+          dbStore.length = 0
+          return deleted
+        }),
+      })),
     })),
   },
 }))

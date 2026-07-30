@@ -1,14 +1,14 @@
 /**
  * Get Birth Data Use Case
  *
- * Retrieves a birth data record by id and validates that it belongs to the given user.
+ * Retrieves a birth data record by userId.
  */
 
 import type { IBirthDataRepository } from '@/domain/birth/repositories/IBirthDataRepository'
 import type { BirthData } from '@/domain/birth/BirthData.vo'
 
 export type GetBirthDataInput = {
-  id: string
+  id?: string
   userId: string
 }
 
@@ -20,20 +20,25 @@ export class GetBirthDataUseCase {
   constructor(private readonly repository: IBirthDataRepository) {}
 
   async execute(input: GetBirthDataInput): Promise<GetBirthDataOutput> {
-    if (!input.id.trim()) {
-      return { ok: false, error: 'El identificador es requerido' }
-    }
-
     if (!input.userId.trim()) {
       return { ok: false, error: 'El identificador de usuario es requerido' }
     }
 
-    const birthData = await this.repository.findById(input.id)
+    if (input.id && input.id.trim()) {
+      const birthData = await this.repository.findById(input.id)
+      if (!birthData || birthData.userId !== input.userId) {
+        return { ok: false, error: 'Datos de nacimiento no encontrados' }
+      }
+      return { ok: true, data: birthData }
+    }
 
-    if (!birthData || birthData.userId !== input.userId) {
+    const birthData = await this.repository.findByUserId(input.userId)
+
+    if (!birthData) {
       return { ok: false, error: 'Datos de nacimiento no encontrados' }
     }
 
     return { ok: true, data: birthData }
   }
 }
+

@@ -97,7 +97,10 @@ describe('POST /api/birth-data — controller input validation', () => {
       routeType: 'endpoint',
       request: new Request('http://localhost/api/birth-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': 'usr_1',
+        },
         body: JSON.stringify({}),
       }),
     })
@@ -105,7 +108,6 @@ describe('POST /api/birth-data — controller input validation', () => {
     expect(response.status).toBe(400)
     const data = await response.json()
     expect(data.error).toBeDefined()
-    expect(data.error).toContain('usuario')
   })
 
   it('should return 400 when date is before 1800', async () => {

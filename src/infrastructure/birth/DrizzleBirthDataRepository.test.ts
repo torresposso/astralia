@@ -214,7 +214,9 @@ describe("DrizzleBirthDataRepository", () => {
     it("should delete record from db and return true", async () => {
       const mockDb = await getMockedDb();
       vi.mocked(mockDb.delete).mockReturnValue({
-        where: vi.fn().mockResolvedValue({ rowsAffected: 1 }),
+        where: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([{ id: "bd_123" }]),
+        }),
       } as any);
 
       const result = await repository.delete("bd_123");

@@ -8,12 +8,41 @@ interface Props {
 }
 
 const { initialData, userId } = Astro.props
+const hasData = Boolean(initialData)
+const initialDataJson = JSON.stringify(initialData ?? null)
+const userIdJson = JSON.stringify(userId ?? '')
 ---
 
 <div
-  x-data="birthDataCard"
+  x-data={`birthDataCard(${initialDataJson}, ${userIdJson})`}
   class="bg-white dark:bg-gray-800/90 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700/60 p-6 md:p-8 backdrop-blur transition-all"
 >
+  <!-- SUCCESS ALERT -->
+  <template x-if="success">
+    <div class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/60 rounded-xl text-emerald-800 dark:text-emerald-200 text-sm flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span x-text="success"></span>
+      </div>
+      <button @click="success = ''" class="text-emerald-500 hover:text-emerald-700 font-bold">&times;</button>
+    </div>
+  </template>
+
+  <!-- WARNING BANNER -->
+  <template x-if="warning">
+    <div class="mb-6 p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-xl text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span x-text="warning"></span>
+      </div>
+      <button @click="warning = ''" class="text-amber-500 hover:text-amber-700 font-bold">&times;</button>
+    </div>
+  </template>
+
   <!-- VIEW MODE: Saved Birth Data Card -->
   <template x-if="hasData && !editing">
     <div class="space-y-6">
@@ -156,7 +185,7 @@ const { initialData, userId } = Astro.props
           <input
             type="text"
             x-model="form.placeSearch"
-            @input.debounce.300ms="searchCities"
+            @input="onPlaceInput"
             placeholder="Escribe el nombre de tu ciudad (ej. Cartagena, Bogotá, Madrid)..."
             required
             class="w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
@@ -217,25 +246,21 @@ const { initialData, userId } = Astro.props
   </template>
 </div>
 
-<script is:inline define:vars={{ initialData, userId }}>
-  window.initialBirthData = initialData;
-  window.currentUserId = userId;
-</script>
-
 <script>
 import { registerComponent } from '@/lib/alpine-utils'
 
-registerComponent('birthDataCard', () => ({
-  userId: window.currentUserId || '',
-  hasData: Boolean(window.initialBirthData),
-  data: window.initialBirthData || null,
+registerComponent('birthDataCard', (initialData: any = null, userId: string = '') => ({
+  userId: userId || '',
+  hasData: Boolean(initialData),
+  data: initialData || null,
   editing: false,
   saving: false,
   deleting: false,
   error: '',
   warning: '',
+  success: '',
   isSearching: false,
-  suggestions: [],
+  suggestions: [] as any[],
 
   form: {
     dateStr: '',
@@ -290,11 +315,23 @@ registerComponent('birthDataCard', () => ({
     this.populateFormFromData()
     this.editing = true
     this.error = ''
+    this.success = ''
   },
 
   cancelEdit() {
     this.editing = false
     this.error = ''
+  },
+
+  onPlaceInput() {
+    // Clear resolved values if user modifies text without selecting suggestion
+    if (this.form.placeSearch !== this.form.placeName) {
+      this.form.placeName = ''
+      this.form.latitude = 0
+      this.form.longitude = 0
+      this.form.timezone = ''
+    }
+    this.searchCities()
   },
 
   async searchCities() {
@@ -306,18 +343,12 @@ registerComponent('birthDataCard', () => ({
 
     this.isSearching = true
     try {
-      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=es&format=json`)
+      const res = await fetch(`/api/geo/search?q=${encodeURIComponent(query)}`, {
+        headers: { 'x-user-id': this.userId },
+      })
       const json = await res.json()
       if (json.results && json.results.length > 0) {
-        this.suggestions = json.results.map((r: any) => {
-          const parts = [r.name, r.admin1, r.country].filter(Boolean)
-          return {
-            displayName: parts.join(', '),
-            latitude: r.latitude,
-            longitude: r.longitude,
-            timezone: r.timezone || 'UTC',
-          }
-        })
+        this.suggestions = json.results
       } else {
         this.suggestions = []
       }
@@ -335,12 +366,19 @@ registerComponent('birthDataCard', () => ({
     this.form.longitude = item.longitude
     this.form.timezone = item.timezone
     this.suggestions = []
+    this.error = ''
   },
 
   async saveData() {
+    if (!this.form.placeName || !this.form.timezone) {
+      this.error = 'Por favor selecciona una ciudad válida de la lista desplegable.'
+      return
+    }
+
     this.saving = true
     this.error = ''
     this.warning = ''
+    this.success = ''
 
     // Parse date
     const [year, month, day] = this.form.dateStr.split('-').map(Number)
@@ -360,7 +398,7 @@ registerComponent('birthDataCard', () => ({
       latitude: this.form.latitude,
       longitude: this.form.longitude,
       timezone: this.form.timezone,
-      placeName: this.form.placeName || this.form.placeSearch,
+      placeName: this.form.placeName,
     }
 
     try {
@@ -388,6 +426,7 @@ registerComponent('birthDataCard', () => ({
       this.data = json.data
       this.hasData = true
       this.editing = false
+      this.success = isUpdate ? 'Datos de nacimiento actualizados exitosamente' : 'Datos de nacimiento guardados exitosamente'
       if (json.warning) {
         this.warning = json.warning
       }
@@ -404,6 +443,7 @@ registerComponent('birthDataCard', () => ({
 
     this.deleting = true
     this.error = ''
+    this.success = ''
 
     try {
       const res = await fetch(`/api/birth-data/${this.data.id}`, {
@@ -423,6 +463,7 @@ registerComponent('birthDataCard', () => ({
       this.editing = false
       this.form.placeSearch = ''
       this.form.placeName = ''
+      this.success = 'Datos de nacimiento eliminados exitosamente'
     } catch {
       this.error = 'Error de conexión al eliminar los datos'
     } finally {

@@ -73,10 +73,32 @@ describe('GetBirthDataUseCase', () => {
   })
 
   it('should validate empty inputs', async () => {
-    const res1 = await useCase.execute({ id: '', userId: 'usr_1' })
-    expect(res1.ok).toBe(false)
-
-    const res2 = await useCase.execute({ id: 'bd_123', userId: '' })
+    const res2 = await useCase.execute({ userId: '' })
     expect(res2.ok).toBe(false)
   })
+
+  it('should return birth data by userId when id is omitted', async () => {
+    const birthData = BirthData.create({
+      id: 'bd_123',
+      userId: 'usr_1',
+      date: { year: 1990, month: 6, day: 10 },
+      time: { hour: 14, minute: 30 },
+      timeUnknown: false,
+      latitude: 10.391,
+      longitude: -75.479,
+      timezone: 'America/Bogota',
+      placeName: 'Cartagena, Colombia',
+    })
+    expect(birthData.ok).toBe(true)
+    if (!birthData.ok) return
+
+    repository.seed('bd_123', birthData.value)
+
+    const result = await useCase.execute({ userId: 'usr_1' })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.data.id).toBe('bd_123')
+  })
 })
+

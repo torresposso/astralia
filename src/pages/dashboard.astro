@@ -2,6 +2,7 @@
 import Base from '@/layouts/Base.astro'
 import FormError from '@/components/FormError.astro'
 import BirthDataCard from '@/components/BirthDataCard.astro'
+import { GetBirthDataUseCase } from '@/application/birth/GetBirthDataUseCase'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 
 const session = Astro.locals.session
@@ -10,10 +11,11 @@ if (!session) return Astro.redirect('/signin')
 const user = Astro.locals.user!
 const initial = (user?.name || user?.email || '?').charAt(0).toUpperCase()
 
-// SSR fetch user's saved birth data
-const repository = new DrizzleBirthDataRepository()
-const birthData = await repository.findByUserId(user.id)
-const initialData = birthData ? birthData.toJSON() : null
+// SSR fetch user's saved birth data via Use Case
+const getBirthDataUseCase = new GetBirthDataUseCase(new DrizzleBirthDataRepository())
+const result = await getBirthDataUseCase.execute({ userId: user.id })
+const initialData = result.ok ? result.data.toJSON() : null
+
 ---
 
 <Base title="Dashboard — Astralia">

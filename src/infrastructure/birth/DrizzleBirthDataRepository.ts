@@ -163,13 +163,19 @@ export class DrizzleBirthDataRepository implements IBirthDataRepository {
     try {
       const result = await db
         .delete(birthDataTable)
-        .where(eq(birthDataTable.id, id));
+        .where(eq(birthDataTable.id, id))
+        .returning({ id: birthDataTable.id });
+
+      if (Array.isArray(result)) {
+        return result.length > 0;
+      }
 
       const rowsAffected = (result as { rowsAffected?: number })?.rowsAffected;
       if (typeof rowsAffected === 'number') {
         return rowsAffected > 0;
       }
-      return true;
+
+      return false;
     } catch {
       return false;
     }
