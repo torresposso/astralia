@@ -3,7 +3,7 @@
  *
  * Clean Architecture controller layer:
  * 1. Parse HTTP request body
- * 2. Instantiate the Use Case with the concrete (or mock) repository
+ * 2. Instantiate the Use Case with the concrete repository and UT converter
  * 3. Execute the Use Case
  * 4. Build the JSON HTTP response
  */
@@ -11,6 +11,7 @@
 import type { APIRoute } from 'astro'
 import { CreateBirthDataUseCase } from '@/application/birth/CreateBirthDataUseCase'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
+import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
 
 export const POST: APIRoute = async ({ request }) => {
   // 1. Validate Content-Type
@@ -32,8 +33,11 @@ export const POST: APIRoute = async ({ request }) => {
     )
   }
 
-  // 3. Use DrizzleBirthDataRepository for persistence
-  const useCase = new CreateBirthDataUseCase(new DrizzleBirthDataRepository())
+  // 3. Instantiate Use Case with DrizzleBirthDataRepository and CaelusBirthConverter
+  const useCase = new CreateBirthDataUseCase(
+    new DrizzleBirthDataRepository(),
+    new CaelusBirthConverter(),
+  )
 
   const result = await useCase.execute({
     userId: (body.userId as string) ?? '',

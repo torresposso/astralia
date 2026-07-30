@@ -10,6 +10,7 @@ import { GetBirthDataUseCase } from '@/application/birth/GetBirthDataUseCase'
 import { UpdateBirthDataUseCase } from '@/application/birth/UpdateBirthDataUseCase'
 import { DeleteBirthDataUseCase } from '@/application/birth/DeleteBirthDataUseCase'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
+import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
 
 function extractRouteAuth(
   params: Record<string, string | undefined>,
@@ -86,7 +87,10 @@ export const PUT: APIRoute = async ({ params, request }) => {
   const auth = extractRouteAuth(params, request, body)
   if (!auth.ok) return auth.response
 
-  const useCase = new UpdateBirthDataUseCase(new DrizzleBirthDataRepository())
+  const useCase = new UpdateBirthDataUseCase(
+    new DrizzleBirthDataRepository(),
+    new CaelusBirthConverter(),
+  )
   const result = await useCase.execute({
     id: auth.id,
     userId: auth.userId,

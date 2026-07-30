@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CreateBirthDataUseCase } from './CreateBirthDataUseCase'
 import { MockBirthDataRepository } from './__mocks__/MockBirthDataRepository'
+import { MockBirthToUTConverter } from './__mocks__/MockBirthToUTConverter'
 
 describe('CreateBirthDataUseCase', () => {
   const validInput = {
@@ -16,7 +17,10 @@ describe('CreateBirthDataUseCase', () => {
 
   describe('execute', () => {
     it('should return success with birth data when input is valid', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute(validInput)
 
       expect(result.ok).toBe(true)
@@ -29,7 +33,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return warning when time is not provided', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         time: null,
@@ -44,8 +51,24 @@ describe('CreateBirthDataUseCase', () => {
       }
     })
 
+    it('should return error when UT conversion fails', async () => {
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter().withFailure('Error al convertir a UT'),
+      )
+      const result = await useCase.execute(validInput)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toBe('Error al convertir a UT')
+      }
+    })
+
     it('should return validation error when date is before 1800', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         date: { year: 1700, month: 1, day: 1 },
@@ -58,7 +81,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when date is after today', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         date: { year: 3000, month: 1, day: 1 },
@@ -71,7 +97,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when latitude is out of range', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         latitude: 100,
@@ -84,7 +113,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when longitude is out of range', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         longitude: 200,
@@ -97,7 +129,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when timezone is empty', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         timezone: '',
@@ -110,7 +145,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when placeName is empty', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         placeName: '',
@@ -123,7 +161,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when userId is empty', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         userId: '',
@@ -138,6 +179,7 @@ describe('CreateBirthDataUseCase', () => {
     it('should return repository error when save fails', async () => {
       const useCase = new CreateBirthDataUseCase(
         new MockBirthDataRepository().withFailure('Database connection failed'),
+        new MockBirthToUTConverter(),
       )
       const result = await useCase.execute(validInput)
 
@@ -148,7 +190,10 @@ describe('CreateBirthDataUseCase', () => {
     })
 
     it('should return validation error when time is null and timeUnknown is false', async () => {
-      const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+      const useCase = new CreateBirthDataUseCase(
+        new MockBirthDataRepository(),
+        new MockBirthToUTConverter(),
+      )
       const result = await useCase.execute({
         ...validInput,
         time: null,

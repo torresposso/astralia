@@ -1,18 +1,21 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { UpdateBirthDataUseCase } from './UpdateBirthDataUseCase'
 import { MockBirthDataRepository } from './__mocks__/MockBirthDataRepository'
+import { MockBirthToUTConverter } from './__mocks__/MockBirthToUTConverter'
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
 describe('UpdateBirthDataUseCase', () => {
   let repository: MockBirthDataRepository
+  let utConverter: MockBirthToUTConverter
   let useCase: UpdateBirthDataUseCase
 
   beforeEach(() => {
     repository = new MockBirthDataRepository()
-    useCase = new UpdateBirthDataUseCase(repository)
+    utConverter = new MockBirthToUTConverter()
+    useCase = new UpdateBirthDataUseCase(repository, utConverter)
   })
 
-  it('should update birth data successfully with full validation', async () => {
+  it('should update birth data successfully with full validation and UT conversion', async () => {
     const original = BirthData.create({
       id: 'bd_123',
       userId: 'usr_1',
@@ -47,6 +50,42 @@ describe('UpdateBirthDataUseCase', () => {
     expect(result.data.date).toEqual({ year: 1992, month: 8, day: 20 })
     expect(result.data.placeName).toBe('Bogotá, Colombia')
     expect(result.warning).toBeUndefined()
+  })
+
+  it('should return error when UT conversion fails', async () => {
+    const original = BirthData.create({
+      id: 'bd_123',
+      userId: 'usr_1',
+      date: { year: 1990, month: 6, day: 10 },
+      time: { hour: 14, minute: 30 },
+      timeUnknown: false,
+      latitude: 10.391,
+      longitude: -75.479,
+      timezone: 'America/Bogota',
+      placeName: 'Cartagena, Colombia',
+    })
+    expect(original.ok).toBe(true)
+    if (!original.ok) return
+
+    repository.seed('bd_123', original.value)
+    utConverter.withFailure('Error al convertir a UT')
+
+    const result = await useCase.execute({
+      id: 'bd_123',
+      userId: 'usr_1',
+      date: { year: 1992, month: 8, day: 20 },
+      time: { hour: 8, minute: 15 },
+      timeUnknown: false,
+      latitude: 4.711,
+      longitude: -74.072,
+      timezone: 'America/Bogota',
+      placeName: 'Bogotá, Colombia',
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error).toBe('Error al convertir a UT')
+    }
   })
 
   it('should return warning when updating to unknown birth time', async () => {
@@ -122,7 +161,7 @@ describe('UpdateBirthDataUseCase', () => {
     const result = await useCase.execute({
       id: 'bd_123',
       userId: 'usr_1',
-      date: { year: 1750, month: 6, day: 10 }, // invalid year < 1800
+      date: { year: 1750, month: 6, day: 10 },
       latitude: 10.391,
       longitude: -75.479,
       timezone: 'America/Bogota',

@@ -3,16 +3,18 @@
  *
  * Orchestrates the birth data creation flow:
  * 1. Validates all birth data invariants via BirthData value object
- * 2. Persists via the repository
- * 3. Returns a warning when time is unknown
+ * 2. Validates Universal Time (UT) conversion via IBirthToUTConverter
+ * 3. Persists via the repository
+ * 4. Returns a warning when time is unknown
  *
  * Following Clean Architecture:
- * - Depends only on domain interfaces (IBirthDataRepository, BirthData)
+ * - Depends only on domain interfaces (IBirthDataRepository, IBirthToUTConverter, BirthData)
  * - No framework dependencies
- * - Testable by passing a mock IBirthDataRepository
+ * - Testable by passing mock dependencies
  */
 
 import type { IBirthDataRepository } from '@/domain/birth/repositories/IBirthDataRepository'
+import type { IBirthToUTConverter } from '@/domain/birth/ports/IBirthToUTConverter'
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
 export type CreateBirthDataInput = {
@@ -31,7 +33,10 @@ export type CreateBirthDataOutput =
   | { ok: false; error: string }
 
 export class CreateBirthDataUseCase {
-  constructor(private readonly repository: IBirthDataRepository) {}
+  constructor(
+    private readonly repository: IBirthDataRepository,
+    private readonly utConverter: IBirthToUTConverter,
+  ) {}
 
   async execute(input: CreateBirthDataInput): Promise<CreateBirthDataOutput> {
     // 1. Create BirthData VO (validates invariants)
@@ -50,13 +55,21 @@ export class CreateBirthDataUseCase {
       return { ok: false, error: birthDataResult.error }
     }
 
-    // 2. Save to repository
-    const saveResult = await this.repository.create(birthDataResult.value)
+    const birthData = birthDataResult.value
+
+    // 2. Validate Universal Time (UT) conversion
+    const utResult = this.utConverter.convert(birthData)
+    if (!utResult.ok) {
+      return { ok: false, error: utResult.error }
+    }
+
+    // 3. Save to repository
+    const saveResult = await this.repository.create(birthData)
     if (!saveResult.ok) {
       return { ok: false, error: saveResult.error }
     }
 
-    // 3. Return with warning if time is unknown
+    // 4. Return with warning if time is unknown
     const output: CreateBirthDataOutput = { ok: true, data: saveResult.data }
     if (!saveResult.data.hasTime()) {
       output.warning =

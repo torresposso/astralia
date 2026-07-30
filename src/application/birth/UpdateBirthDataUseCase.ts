@@ -1,10 +1,11 @@
 /**
  * Update Birth Data Use Case
  *
- * Modifies an existing birth data record after validating invariants and ownership.
+ * Modifies an existing birth data record after validating invariants, UT conversion, and ownership.
  */
 
 import type { IBirthDataRepository } from '@/domain/birth/repositories/IBirthDataRepository'
+import type { IBirthToUTConverter } from '@/domain/birth/ports/IBirthToUTConverter'
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
 export type UpdateBirthDataInput = {
@@ -24,7 +25,10 @@ export type UpdateBirthDataOutput =
   | { ok: false; error: string }
 
 export class UpdateBirthDataUseCase {
-  constructor(private readonly repository: IBirthDataRepository) {}
+  constructor(
+    private readonly repository: IBirthDataRepository,
+    private readonly utConverter: IBirthToUTConverter,
+  ) {}
 
   async execute(input: UpdateBirthDataInput): Promise<UpdateBirthDataOutput> {
     if (!input.id.trim()) {
@@ -54,13 +58,21 @@ export class UpdateBirthDataUseCase {
       return { ok: false, error: birthDataResult.error }
     }
 
-    // 3. Persist update
-    const updateResult = await this.repository.update(input.id, birthDataResult.value)
+    const birthData = birthDataResult.value
+
+    // 3. Validate Universal Time (UT) conversion
+    const utResult = this.utConverter.convert(birthData)
+    if (!utResult.ok) {
+      return { ok: false, error: utResult.error }
+    }
+
+    // 4. Persist update
+    const updateResult = await this.repository.update(input.id, birthData)
     if (!updateResult.ok) {
       return { ok: false, error: updateResult.error }
     }
 
-    // 4. Return result with warning if time is unknown
+    // 5. Return result with warning if time is unknown
     const output: UpdateBirthDataOutput = { ok: true, data: updateResult.data }
     if (!updateResult.data.hasTime()) {
       output.warning =
