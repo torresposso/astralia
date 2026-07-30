@@ -11,32 +11,46 @@ import { UpdateBirthDataUseCase } from '@/application/birth/UpdateBirthDataUseCa
 import { DeleteBirthDataUseCase } from '@/application/birth/DeleteBirthDataUseCase'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 
-function getUserId(request: Request, body?: Record<string, unknown>): string {
-  if (body?.userId && typeof body.userId === 'string') {
-    return body.userId
+function extractRouteAuth(
+  params: Record<string, string | undefined>,
+  request: Request,
+  body?: Record<string, unknown>,
+): { ok: true; id: string; userId: string } | { ok: false; response: Response } {
+  const id = params.id
+  if (!id) {
+    return {
+      ok: false,
+      response: new Response(
+        JSON.stringify({ error: 'El identificador es requerido' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      ),
+    }
   }
-  return request.headers.get('x-user-id') ?? ''
+
+  const userId =
+    body?.userId && typeof body.userId === 'string'
+      ? body.userId
+      : (request.headers.get('x-user-id') ?? '')
+
+  if (!userId) {
+    return {
+      ok: false,
+      response: new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+    }
+  }
+
+  return { ok: true, id, userId }
 }
 
 export const GET: APIRoute = async ({ params, request }) => {
-  const id = params.id
-  if (!id) {
-    return new Response(
-      JSON.stringify({ error: 'El identificador es requerido' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
-
-  const userId = getUserId(request)
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'No autorizado' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
+  const auth = extractRouteAuth(params, request)
+  if (!auth.ok) return auth.response
 
   const useCase = new GetBirthDataUseCase(new DrizzleBirthDataRepository())
-  const result = await useCase.execute({ id, userId })
+  const result = await useCase.execute({ id: auth.id, userId: auth.userId })
 
   if (!result.ok) {
     return new Response(
@@ -52,14 +66,6 @@ export const GET: APIRoute = async ({ params, request }) => {
 }
 
 export const PUT: APIRoute = async ({ params, request }) => {
-  const id = params.id
-  if (!id) {
-    return new Response(
-      JSON.stringify({ error: 'El identificador es requerido' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
-
   if (request.headers.get('Content-Type') !== 'application/json') {
     return new Response(
       JSON.stringify({ error: 'Content-Type debe ser application/json' }),
@@ -77,18 +83,13 @@ export const PUT: APIRoute = async ({ params, request }) => {
     )
   }
 
-  const userId = getUserId(request, body)
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'No autorizado' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
+  const auth = extractRouteAuth(params, request, body)
+  if (!auth.ok) return auth.response
 
   const useCase = new UpdateBirthDataUseCase(new DrizzleBirthDataRepository())
   const result = await useCase.execute({
-    id,
-    userId,
+    id: auth.id,
+    userId: auth.userId,
     date: (body.date as { year: number; month: number; day: number }) ?? { year: 0, month: 0, day: 0 },
     time: body.time as { hour: number; minute: number } | null | undefined,
     timeUnknown: (body.timeUnknown as boolean) ?? false,
@@ -116,24 +117,11 @@ export const PUT: APIRoute = async ({ params, request }) => {
 }
 
 export const DELETE: APIRoute = async ({ params, request }) => {
-  const id = params.id
-  if (!id) {
-    return new Response(
-      JSON.stringify({ error: 'El identificador es requerido' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
-
-  const userId = getUserId(request)
-  if (!userId) {
-    return new Response(
-      JSON.stringify({ error: 'No autorizado' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
-    )
-  }
+  const auth = extractRouteAuth(params, request)
+  if (!auth.ok) return auth.response
 
   const useCase = new DeleteBirthDataUseCase(new DrizzleBirthDataRepository())
-  const result = await useCase.execute({ id, userId })
+  const result = await useCase.execute({ id: auth.id, userId: auth.userId })
 
   if (!result.ok) {
     return new Response(
