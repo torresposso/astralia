@@ -11,11 +11,11 @@ import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 
 // ---------------------------------------------------------------------------
-// Mock @/auth — vi.mock is hoisted to the top by vitest
-// The signout controller always calls BetterAuthRepository, which imports
-// `auth` from @/auth. Mocking prevents real better-auth/database calls.
+// Mock @/infrastructure/auth/auth.config — vi.mock is hoisted to the top by vitest
+// The SignOutUseCase delegates to BetterAuthRepository, which calls
+// `auth` from @/infrastructure/auth/auth.config. Mocking prevents real better-auth/database calls.
 // ---------------------------------------------------------------------------
-vi.mock('@/auth', () => ({
+vi.mock('@/infrastructure/auth/auth.config', () => ({
   auth: {
     api: {
       signInEmail: vi.fn(),

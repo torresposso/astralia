@@ -8,12 +8,10 @@
  * 1. **Domain** (`src/domain/`) must NOT import from:
  *    - Infrastructure (`src/infrastructure/`)
  *    - Pages/Interfaces (`src/pages/`)
- *    - Database (`src/db/`)
  *
  * 2. **Application** (`src/application/`) must NOT import from:
  *    - Infrastructure (`src/infrastructure/`)
  *    - Pages/Interfaces (`src/pages/`)
- *    - Database (`src/db/`)
  *
  * 3. **Infrastructure** (`src/infrastructure/`) must NOT import from:
  *    - Application (`src/application/`)
@@ -34,7 +32,7 @@ import path from 'path'
 // Helpers
 // ---------------------------------------------------------------------------
 
-const SRC_DIR = path.resolve(import.meta.dirname ?? __dirname, '..') // resolves to src/
+const SRC_DIR = path.resolve(import.meta.dirname ?? __dirname, '../src') // resolves to src/
 
 /** Extract the path from every `from '…'` or `from "…"` statement. */
 function extractImportPaths(source: string): string[] {
@@ -97,15 +95,15 @@ function checkLayerImports(
     const importPaths = extractImportPaths(source)
 
     for (const importPath of importPaths) {
-      for (const forbidden of forbidden) {
+      for (const forbiddenItem of forbidden) {
         if (
-          importPath === forbidden ||
-          importPath.startsWith(`${forbidden}/`) ||
-          importPath.includes(`/${forbidden}/`) ||
-          importPath.startsWith(`@/${forbidden}`)
+          importPath === forbiddenItem ||
+          importPath.startsWith(`${forbiddenItem}/`) ||
+          importPath.includes(`/${forbiddenItem}/`) ||
+          importPath.startsWith(`@/${forbiddenItem}`)
         ) {
           const relativePath = path.relative(SRC_DIR, filePath)
-          violations.push(`  ❌ ${relativePath} imports from "${forbidden}" via: ${importPath}`)
+          violations.push(`  ❌ ${relativePath} imports from "${forbiddenItem}" via: ${importPath}`)
         }
       }
     }

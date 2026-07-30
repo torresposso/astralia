@@ -13,9 +13,9 @@ import { BetterAuthRepository } from './BetterAuthRepository'
 import { User } from '@/domain/auth/User.entity'
 
 // ---------------------------------------------------------------------------
-// Mock @/auth — vi.mock is hoisted to the top by vitest
+// Mock @/infrastructure/auth/auth.config — vi.mock is hoisted to the top by vitest
 // ---------------------------------------------------------------------------
-vi.mock('@/auth', () => ({
+vi.mock('@/infrastructure/auth/auth.config', () => ({
   auth: {
     api: {
       signInEmail: vi.fn(),
@@ -32,7 +32,7 @@ vi.mock('@/auth', () => ({
 
 /** Returns the mocked auth reference for assertion calls. */
 async function getMockedAuth() {
-  const { auth } = await import('@/auth')
+  const { auth } = await import('@/infrastructure/auth/auth.config')
   return auth
 }
 

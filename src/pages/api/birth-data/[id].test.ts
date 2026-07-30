@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 
 // Mock database layer
-vi.mock('@/db', () => ({
+vi.mock('@/infrastructure/db', () => ({
   db: {
     select: vi.fn(),
     update: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock('@/db', () => ({
 }))
 
 import * as idEndpoint from './[id]'
-import { db } from '@/db'
+import { db } from '@/infrastructure/db'
 
 describe('GET, PUT, DELETE /api/birth-data/[id]', () => {
   let container: AstroContainer

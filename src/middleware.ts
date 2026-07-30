@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { auth } from "@/infrastructure/auth/auth.config";
 import { defineMiddleware } from "astro:middleware";
 
 // Rutas internas que nunca necesitan verificar sesión (assets, API, partials)

@@ -17,7 +17,7 @@ import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 
 // Mock better-auth at module level for all integration tests
-vi.mock('@/auth', () => ({
+vi.mock('@/infrastructure/auth/auth.config', () => ({
   auth: {
     api: {
       signInEmail: vi.fn(),
@@ -28,9 +28,9 @@ vi.mock('@/auth', () => ({
   },
 }))
 
-import * as signinEndpoint from '../pages/api/auth/signin'
-import * as signupEndpoint from '../pages/api/auth/signup'
-import * as signoutEndpoint from '../pages/api/auth/signout'
+import * as signinEndpoint from '@/pages/api/auth/signin'
+import * as signupEndpoint from '@/pages/api/auth/signup'
+import * as signoutEndpoint from '@/pages/api/auth/signout'
 
 describe('Auth Flow Integration', () => {
   let container: AstroContainer
@@ -41,7 +41,7 @@ describe('Auth Flow Integration', () => {
 
   describe('Sign Up → redirect to dashboard', () => {
     it('should return redirectTo on successful signup', async () => {
-      const { auth } = await import('@/auth')
+      const { auth } = await import('@/infrastructure/auth/auth.config')
       vi.mocked(auth.api.signUpEmail).mockResolvedValue({
         response: {
           user: {
@@ -88,7 +88,7 @@ describe('Auth Flow Integration', () => {
 
   describe('Sign In → redirect to dashboard', () => {
     it('should return redirectTo + Set-Cookie on successful signin', async () => {
-      const { auth } = await import('@/auth')
+      const { auth } = await import('@/infrastructure/auth/auth.config')
       vi.mocked(auth.api.signInEmail).mockResolvedValue({
         response: {
           user: {
@@ -131,7 +131,7 @@ describe('Auth Flow Integration', () => {
     })
 
     it('should return generic error on invalid credentials (prevent email enumeration)', async () => {
-      const { auth } = await import('@/auth')
+      const { auth } = await import('@/infrastructure/auth/auth.config')
       vi.mocked(auth.api.signInEmail).mockRejectedValue(
         new (await import('better-auth/api')).APIError('BAD_REQUEST', { message: 'Invalid email or password' })
       )
@@ -156,7 +156,7 @@ describe('Auth Flow Integration', () => {
 
   describe('Sign Out → redirect to home', () => {
     it('should return redirectTo: "/" on successful signout', async () => {
-      const { auth } = await import('@/auth')
+      const { auth } = await import('@/infrastructure/auth/auth.config')
       vi.mocked(auth.api.signOut).mockResolvedValue({
         headers: new Headers({ 'set-cookie': 'better-auth.session_token=; Path=/; Max-Age=0' }),
       })

@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
       enabled: false, // Solo se activa con --coverage flag
@@ -13,8 +13,9 @@ export default defineConfig({
       exclude: [
         'src/**/*.test.ts',
         'src/**/*.test.tsx',
+        'tests/**/*.test.ts',
         'src/**/__mocks__/**',
-        'src/db/**',
+        'src/infrastructure/db/**',
         'src/env.d.ts',
       ],
       thresholds: {

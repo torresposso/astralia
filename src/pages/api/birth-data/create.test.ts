@@ -17,8 +17,8 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 
-// Mock the database layer since DrizzleBirthDataRepository depends on @/db
-vi.mock('@/db', () => ({
+// Mock the database layer since DrizzleBirthDataRepository depends on @/infrastructure/db
+vi.mock('@/infrastructure/db', () => ({
   db: {
     insert: vi.fn().mockReturnValue({
       values: vi.fn().mockResolvedValue(undefined),

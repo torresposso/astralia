@@ -9,7 +9,7 @@
  */
 
 import type { APIRoute } from 'astro'
-import { parseAndAuthenticateRequest } from './controllerHelper'
+import { parseAndAuthenticateRequest } from '../_helpers/controllerHelper'
 import { CreateBirthDataUseCase } from '@/application/birth/CreateBirthDataUseCase'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'

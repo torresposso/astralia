@@ -1,8 +1,8 @@
 ---
 import Base from "@/layouts/Base.astro";
 import AuthLayout from "@/layouts/AuthLayout.astro";
-import FormError from "@/components/FormError.astro";
-import SubmitButton from "@/components/SubmitButton.astro";
+import FormError from "@/components/ui/FormError.astro";
+import SubmitButton from "@/components/ui/SubmitButton.astro";
 
 const session = Astro.locals.session;
 if (session) return Astro.redirect("/dashboard");

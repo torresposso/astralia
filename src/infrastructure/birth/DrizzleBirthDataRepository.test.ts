@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DrizzleBirthDataRepository } from "./DrizzleBirthDataRepository";
 import { BirthData } from "@/domain/birth/BirthData.vo";
 
-vi.mock("@/db", () => ({
+vi.mock("@/infrastructure/db", () => ({
   db: {
     insert: vi.fn().mockReturnValue({
       values: vi.fn().mockResolvedValue(undefined),
@@ -20,7 +20,7 @@ vi.mock("@/db", () => ({
 }));
 
 async function getMockedDb() {
-  const { db } = await import("@/db");
+  const { db } = await import("@/infrastructure/db");
   return db;
 }
 

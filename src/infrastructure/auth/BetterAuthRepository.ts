@@ -7,7 +7,7 @@
  * and the better-auth library. The domain layer knows nothing about better-auth.
  */
 
-import { auth } from '@/auth'
+import { auth } from '@/infrastructure/auth/auth.config'
 import { User } from '@/domain/auth/User.entity'
 import type {
   IAuthRepository,

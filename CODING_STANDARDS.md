@@ -85,10 +85,10 @@ The authenticated landing page for a User after signin. Route: `/dashboard`. Sho
 ### UI Component Domain
 
 **FormError**:
-An Astro component that renders an Alpine-reactive error message (`x-show="error"`, `x-text="error"`). Lives at `src/components/FormError.astro`.
+An Astro component that renders an Alpine-reactive error message (`x-show="error"`, `x-text="error"`). Lives at `src/components/ui/FormError.astro`.
 
 **SubmitButton**:
-An Astro component that renders a submit button with Alpine loading state (`:disabled="loading"`, dynamic `x-text`). Lives at `src/components/SubmitButton.astro`.
+An Astro component that renders a submit button with Alpine loading state (`:disabled="loading"`, dynamic `x-text`). Lives at `src/components/ui/SubmitButton.astro`.
 
 ### Layout Domain
 
@@ -149,33 +149,46 @@ An ADR can be a single paragraph. The value is recording *that* a decision was m
 ### Directory Structure
 
 ```
+tests/                    # Global & integration tests
+├── architecture.test.ts  # Clean Architecture contract tests
+└── integration/          # Integration flow test suites
+
 src/
-├── layouts/          # Astro layout components
-│   ├── Base.astro
-│   └── AuthLayout.astro
-├── components/       # Reusable Astro components (UI building blocks)
-│   ├── FormError.astro
-│   └── SubmitButton.astro
-├── pages/            # Route pages — one file per route
+├── domain/               # Domain Layer (Pure TS: entities, VOs, ports)
+│   ├── auth/
+│   ├── birth/
+│   └── chart/
+├── application/          # Application Layer (Use cases)
+│   ├── auth/
+│   ├── birth/
+│   └── chart/
+├── infrastructure/       # Infrastructure Layer (Adapters, DB, auth config)
+│   ├── auth/
+│   │   └── auth.config.ts
+│   ├── db/               # Database connection & Drizzle schema
+│   │   ├── index.ts
+│   │   └── schema.ts
+│   ├── birth/
+│   └── chart/
+├── components/           # UI Components (Organized by domain & primitive)
+│   ├── ui/               # Generic UI primitives (FormError, SubmitButton)
+│   └── birth/            # Birth Data UI components (BirthDataCard)
+├── layouts/              # Astro layout components (Base.astro, AuthLayout.astro)
+├── pages/                # Presentation / Routing (Astro SSR pages & API controllers)
+│   ├── api/
+│   │   ├── _helpers/     # Controller utility helpers
+│   │   ├── auth/
+│   │   ├── birth-data/
+│   │   ├── chart/
+│   │   └── geo/
 │   ├── index.astro
 │   ├── signin.astro
 │   ├── signup.astro
-│   ├── dashboard.astro
-│   ├── api/
-│   │   └── auth/[...all].ts
-│   └── partials/
-│       └── hello.astro
-├── lib/              # Shared JavaScript/TypeScript utilities
-│   ├── auth-client.ts
-│   └── alpine-utils.ts
-├── db/               # Database layer
-│   ├── index.ts
-│   └── schema.ts
-├── styles/           # Global stylesheets
-│   └── global.css
-├── auth.ts           # Server-side auth configuration
-├── middleware.ts     # Astro middleware (session guard)
-└── env.d.ts          # TypeScript ambient declarations
+│   └── dashboard.astro
+├── lib/                  # Frontend/Alpine utilities (alpine-utils.ts)
+├── styles/               # Global stylesheets (global.css)
+├── middleware.ts         # Astro middleware (session guard)
+└── env.d.ts              # TypeScript ambient declarations
 ```
 
 ### Module Design Principles (from codebase-design skill)

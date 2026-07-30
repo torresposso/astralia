@@ -111,7 +111,7 @@ const buildChart = vi.hoisted(() => (birthDataId: string) => ({
 
 const dbStore: Record<string, any>[] = []
 
-vi.mock('@/db', () => ({
+vi.mock('@/infrastructure/db', () => ({
   db: {
     insert: () => ({
       values: (data: any) => {
@@ -190,8 +190,8 @@ vi.mock('caelus-birth', () => ({
 // Test Suite
 // ---------------------------------------------------------------------------
 
-import * as createEndpoint from '../pages/api/birth-data/create'
-import * as chartEndpoint from '../pages/api/chart/natal'
+import * as createEndpoint from '@/pages/api/birth-data/create'
+import * as chartEndpoint from '@/pages/api/chart/natal'
 
 describe('Chart Pipeline (Birth Data → Natal Chart)', () => {
   let container: AstroContainer

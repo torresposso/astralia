@@ -22,7 +22,7 @@ export class OpenMeteoGeocodingAdapter implements IGeocodingService {
 
     try {
       const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmed)}&count=5&language=es&format=json`
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
       if (!res.ok) return []
 
       const json = await res.json()

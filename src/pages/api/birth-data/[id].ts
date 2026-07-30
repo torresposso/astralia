@@ -6,7 +6,7 @@
  */
 
 import type { APIRoute } from 'astro'
-import { parseAndAuthenticateRequest } from './controllerHelper'
+import { parseAndAuthenticateRequest } from '../_helpers/controllerHelper'
 import { GetBirthDataUseCase } from '@/application/birth/GetBirthDataUseCase'
 import { UpdateBirthDataUseCase } from '@/application/birth/UpdateBirthDataUseCase'
 import { DeleteBirthDataUseCase } from '@/application/birth/DeleteBirthDataUseCase'

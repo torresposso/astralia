@@ -17,7 +17,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 // In-memory mock DB state to simulate real Drizzle persistence layer
 const dbStore: any[] = []
 
-vi.mock('@/db', () => ({
+vi.mock('@/infrastructure/db', () => ({
   db: {
     insert: vi.fn().mockImplementation(() => ({
       values: vi.fn().mockImplementation(async (row: any) => {
@@ -56,8 +56,8 @@ vi.mock('@/db', () => ({
   },
 }))
 
-import * as createEndpoint from '../pages/api/birth-data/create'
-import * as idEndpoint from '../pages/api/birth-data/[id]'
+import * as createEndpoint from '@/pages/api/birth-data/create'
+import * as idEndpoint from '@/pages/api/birth-data/[id]'
 
 describe('Birth Data End-to-End Pipeline Integration', () => {
   let container: AstroContainer

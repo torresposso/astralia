@@ -6,8 +6,8 @@
  */
 
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { birthData as birthDataTable } from "@/db/schema";
+import { db } from "@/infrastructure/db";
+import { birthData as birthDataTable } from "@/infrastructure/db/schema";
 import { BirthData } from "@/domain/birth/BirthData.vo";
 import type { IBirthDataRepository, BirthDataResult } from "@/domain/birth/repositories/IBirthDataRepository";
 
@@ -52,6 +52,25 @@ export class DrizzleBirthDataRepository implements IBirthDataRepository {
     }
   }
 
+  private mapRowToBirthData(row: typeof birthDataTable.$inferSelect): BirthData {
+    const hasTime = row.birthHour !== null && row.birthMinute !== null;
+    return BirthData.from({
+      id: row.id,
+      userId: row.userId,
+      date: {
+        year: row.birthYear,
+        month: row.birthMonth,
+        day: row.birthDay,
+      },
+      time: hasTime && !row.timeUnknown ? { hour: row.birthHour!, minute: row.birthMinute! } : null,
+      timeUnknown: Boolean(row.timeUnknown),
+      latitude: row.latitude,
+      longitude: row.longitude,
+      timezone: row.timezone,
+      placeName: row.placeName,
+    });
+  }
+
   async findById(id: string): Promise<BirthData | null> {
     try {
       const rows = await db
@@ -61,25 +80,7 @@ export class DrizzleBirthDataRepository implements IBirthDataRepository {
         .limit(1);
 
       if (rows.length === 0) return null;
-
-      const row = rows[0];
-      const hasTime = row.birthHour !== null && row.birthMinute !== null;
-
-      return BirthData.from({
-        id: row.id,
-        userId: row.userId,
-        date: {
-          year: row.birthYear,
-          month: row.birthMonth,
-          day: row.birthDay,
-        },
-        time: hasTime && !row.timeUnknown ? { hour: row.birthHour!, minute: row.birthMinute! } : null,
-        timeUnknown: Boolean(row.timeUnknown),
-        latitude: row.latitude,
-        longitude: row.longitude,
-        timezone: row.timezone,
-        placeName: row.placeName,
-      });
+      return this.mapRowToBirthData(rows[0]);
     } catch {
       return null;
     }
@@ -94,25 +95,7 @@ export class DrizzleBirthDataRepository implements IBirthDataRepository {
         .limit(1);
 
       if (rows.length === 0) return null;
-
-      const row = rows[0];
-      const hasTime = row.birthHour !== null && row.birthMinute !== null;
-
-      return BirthData.from({
-        id: row.id,
-        userId: row.userId,
-        date: {
-          year: row.birthYear,
-          month: row.birthMonth,
-          day: row.birthDay,
-        },
-        time: hasTime && !row.timeUnknown ? { hour: row.birthHour!, minute: row.birthMinute! } : null,
-        timeUnknown: Boolean(row.timeUnknown),
-        latitude: row.latitude,
-        longitude: row.longitude,
-        timezone: row.timezone,
-        placeName: row.placeName,
-      });
+      return this.mapRowToBirthData(rows[0]);
     } catch {
       return null;
     }

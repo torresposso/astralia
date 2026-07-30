@@ -19,8 +19,8 @@
 │  src/domain/auth/                                            │
 ├─────────────────────────────────────────────────────────────┤
 │                     INFRASTRUCTURE                           │
-│  BetterAuthRepository  ·  Auth Client  ·  DB Schema         │
-│  src/infrastructure/auth/    ·    src/db/                   │
+│  BetterAuthRepository  ·  auth.config.ts  ·  DB Schema      │
+│  src/infrastructure/auth/   ·   src/infrastructure/db/      │
 │  better-auth · Drizzle ORM · Turso (SQLite)                 │
 └─────────────────────────────────────────────────────────────┘
 ```
