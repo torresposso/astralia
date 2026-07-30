@@ -14,8 +14,18 @@
  * reached for input-level validation errors.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+
+// Mock the database layer since DrizzleBirthDataRepository depends on @/db
+vi.mock('@/db', () => ({
+  db: {
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
+}))
+
 import * as createEndpoint from './create'
 
 describe('POST /api/birth-data — controller input validation', () => {
@@ -64,7 +74,7 @@ describe('POST /api/birth-data — controller input validation', () => {
 
     expect(response.status).toBe(415)
     const data = await response.json()
-    expect(data).toEqual({ error: 'Content-Type must be application/json' })
+    expect(data).toEqual({ error: 'Content-Type debe ser application/json' })
   })
 
   it('should return 400 when request body is not valid JSON', async () => {
@@ -79,7 +89,7 @@ describe('POST /api/birth-data — controller input validation', () => {
 
     expect(response.status).toBe(400)
     const data = await response.json()
-    expect(data).toEqual({ error: 'Invalid JSON body' })
+    expect(data).toEqual({ error: 'El cuerpo de la solicitud no es JSON válido' })
   })
 
   it('should return 400 when required fields are missing', async () => {

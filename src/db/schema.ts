@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
@@ -87,9 +87,39 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const birthData = sqliteTable(
+  "birth_data",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    birthYear: integer("birth_year").notNull(),
+    birthMonth: integer("birth_month").notNull(),
+    birthDay: integer("birth_day").notNull(),
+    birthHour: integer("birth_hour"),
+    birthMinute: integer("birth_minute"),
+    timeUnknown: integer("time_unknown", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    latitude: real("latitude").notNull(),
+    longitude: real("longitude").notNull(),
+    timezone: text("timezone").notNull(),
+    placeName: text("place_name").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index("birth_data_userId_idx").on(table.userId)],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  birthData: many(birthData),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -102,6 +132,13 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const birthDataRelations = relations(birthData, ({ one }) => ({
+  user: one(user, {
+    fields: [birthData.userId],
     references: [user.id],
   }),
 }));

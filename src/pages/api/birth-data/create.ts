@@ -10,13 +10,13 @@
 
 import type { APIRoute } from 'astro'
 import { CreateBirthDataUseCase } from '@/application/birth/CreateBirthDataUseCase'
-import { MockBirthDataRepository } from '@/application/birth/__mocks__/MockBirthDataRepository'
+import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 
 export const POST: APIRoute = async ({ request }) => {
   // 1. Validate Content-Type
   if (request.headers.get('Content-Type') !== 'application/json') {
     return new Response(
-      JSON.stringify({ error: 'Content-Type must be application/json' }),
+      JSON.stringify({ error: 'Content-Type debe ser application/json' }),
       { status: 415, headers: { 'Content-Type': 'application/json' } },
     )
   }
@@ -27,13 +27,13 @@ export const POST: APIRoute = async ({ request }) => {
     body = await request.json()
   } catch {
     return new Response(
-      JSON.stringify({ error: 'Invalid JSON body' }),
+      JSON.stringify({ error: 'El cuerpo de la solicitud no es JSON válido' }),
       { status: 400, headers: { 'Content-Type': 'application/json' } },
     )
   }
 
-  // 3. For now, use mock repo. Will be replaced with real DI later.
-  const useCase = new CreateBirthDataUseCase(new MockBirthDataRepository())
+  // 3. Use DrizzleBirthDataRepository for persistence
+  const useCase = new CreateBirthDataUseCase(new DrizzleBirthDataRepository())
 
   const result = await useCase.execute({
     userId: (body.userId as string) ?? '',
