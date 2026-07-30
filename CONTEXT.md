@@ -27,14 +27,57 @@ _Avoid_: Logout (acceptable in code identifiers), cerrar sesión
 **Dashboard**:
 The authenticated landing page after sign in. Shows the User's profile information and navigation to future features.
 
-**Chart** (future):
-An astrological natal chart computed for a User based on their birth date, time, and location. Contains planetary positions, houses, aspects, and interpretations.
+**Birth Data**:
+The date, time, and geographic location a User provides to compute their astrological Chart. Stores Birth Date, Birth Time, Time Unknown flag, and resolved Coordinates + Timezone. Owns the raw input data that flows into CaelusBirthConverter. Belongs to a User.
+_Avoid_: Dato de nacimiento
+
+**Birth Date**:
+The calendar date (year, month, day) of a User's birth. Must be between 1800-01-01 and today. Belongs to Birth Data.
+_Avoid_: Fecha de nacimiento, DOB
+
+**Birth Time**:
+The local clock time (hour, minute) of a User's birth. Optional — when unknown, defaults to 12:00 noon with a Whole Sign house system warning. Belongs to Birth Data.
+_Avoid_: Hora de nacimiento, birth hour
+
+**Time Unknown**:
+A boolean flag on Birth Data indicating the User does not know their exact birth time. When true, the system uses 12:00 noon default and Whole Sign houses with a prominent warning.
+_Avoid_: Sin hora, no time
+
+**Place of Birth**:
+The geographic location name of a User's birth (e.g., "Cartagena, Bolívar, Colombia"). Free-text field stored as display metadata. The canonical data for calculations are the coordinates (latitude, longitude), not the place name.
+_Avoid_: Lugar de nacimiento, birthplace
+
+**Coordinates**:
+The latitude and longitude of a Place of Birth. Latitude ranges -90 to 90 (north positive). Longitude ranges -180 to 180 (EAST positive — Caelus-native convention, so Cartagena is -75.5). Canonical data for astrological calculations.
+_Avoid_: Coordenadas, lat/lng (use lat/lon)
+
+**Timezone**:
+The IANA timezone identifier (e.g., "America/Bogota") associated with the Place of Birth. Used to convert local birth time to Universal Time for chart calculation. Auto-resolved from coordinates via tz-lookup; optionally overridable by the User.
+_Avoid_: Zona horaria, time zone (use timezone), UTC offset
+
+**Local Time**:
+The birth time expressed in the local timezone of the Place of Birth. This is how Birth Data is stored — NOT in UT. Conversion to UT happens in Infrastructure.
+_Avoid_: Hora local
+
+**Universal Time (UT)**:
+The birth time converted from Local Time to the UT (UTC) timescale. Required for Caelus astrological calculations. Computed by CaelusBirthConverter in Infrastructure.
+
+**Geocoding**:
+The process of resolving a Place of Birth text to Coordinates and Timezone. Uses the Open-Meteo Geocoding API (free, no API key). Runs client-side for city autocomplete; the resolved lat/lon/tz is sent to the server.
+
+**CaelusBirthConverter**:
+An Infrastructure service that converts Birth Data (local time + timezone + coordinates) into Universal Time and Julian Day for astrological calculations. Uses the `caelus-birth` package (depends on tz-lookup + luxon). Lives in Infrastructure, NOT Domain.
+_Avoid_: toUT, Caelus converter
+
+**Whole Sign**:
+The house system used when Birth Time is unknown. Every house cusp equals the corresponding sign degree. A warning is displayed to the User clarifying that house positions are approximate.
+_Avoid_: Casas enteras, Whole Sign houses
+
+**Chart** (next — depends on Birth Data):
+An astrological natal chart computed for a User based on their birth date, time, and location. Contains planetary positions, houses, aspects, and interpretations. Requires fully resolved Birth Data (including UT conversion) before it can be calculated.
 _Avoid_: Carta, horoscope, birth chart
 
-**Birth Data** (future):
-The date, time, and geographic location required to compute a Chart. Belongs to a User.
-
-**Natal Chart** (future):
+**Natal Chart** (next):
 Synonym for Chart when referring specifically to the moment of birth, not transit or progressed charts.
 _Avoid_: Carta natal
 
