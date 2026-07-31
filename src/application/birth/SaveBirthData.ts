@@ -1,8 +1,8 @@
 /**
  * Save Birth Data
  *
- * Owns the birth data save pipeline (create + update), absorbing the former
- * CreateBirthDataUseCase and UpdateBirthDataUseCase:
+ * Owns the birth data save pipeline (create + update); the current module is
+ * SaveBirthData (create/update):
  * 1. Maps a route-provided BirthDataInput onto the BirthData value object
  *    (VO validation is preserved, including rejection of absent coordinates)
  * 2. Gates the local time through the UT converter (DST policy):

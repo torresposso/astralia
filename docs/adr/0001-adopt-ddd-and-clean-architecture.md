@@ -2,8 +2,6 @@
 
 We reorganized the project from a flat Astro structure into Domain-Driven Design layers with Clean Architecture separation, to prepare for the astrological domain logic (charts, houses, aspects) that the project will eventually implement.
 
-## SECCIONES OPCIONALES
-
 ### Status
 
 accepted

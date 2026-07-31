@@ -9,9 +9,9 @@
 │  src/pages/      ·  src/components/       ·  src/layouts/   │
 ├─────────────────────────────────────────────────────────────┤
 │                     APPLICATION (Use Cases)                  │
-│  Auth: SignInUseCase · SignUpUseCase · SignOutUseCase        │
-│  Birth: CreateBirthData · GetBirthData · UpdateBirthData     │
-│  Chart: CalculateChartUseCase                                │
+│  Auth: SignIn · SignUp · SignOut                             │
+│  Birth: SaveBirthData · GetBirthData · DeleteBirthData       │
+│  Chart: CalculateChart                                       │
 │  src/application/auth/ · src/application/birth/              │
 │  src/application/chart/                                      │
 ├─────────────────────────────────────────────────────────────┤
@@ -46,9 +46,9 @@
 - Cada Use Case tiene una sola responsabilidad
 - Retorna **Result pattern**: `{ ok: true, data } | { ok: false, error }`
 - Implemented use cases by bounded context:
-  - Auth: `SignInUseCase`, `SignUpUseCase`, `SignOutUseCase` (`src/application/auth/`)
-  - Birth Data: `CreateBirthDataUseCase`, `GetBirthDataUseCase`, `UpdateBirthDataUseCase`, `DeleteBirthDataUseCase`, `SearchCitiesUseCase` (`src/application/birth/`)
-  - Chart: `CalculateChartUseCase` (`src/application/chart/`)
+  - Auth: `SignIn`, `SignUp`, `SignOut` (`src/application/auth/`)
+  - Birth Data: `SaveBirthData` (create/update), `GetBirthData`, `DeleteBirthData`, `SearchCities` (`src/application/birth/`)
+  - Chart: `CalculateChart` (`src/application/chart/`)
 
 ### Infrastructure (`src/infrastructure/`)
 
@@ -81,7 +81,7 @@ Browser (Alpine.js)               Astro SSR
   API Route (Controller)             │
       │                              │
       ▼                              │
-  SignInUseCase                      │
+  SignIn                             │
       │ • Email.create(email)        │
       │ • Password.create(password)  │
       ▼                              │
@@ -99,7 +99,7 @@ Browser (Alpine.js)               Astro SSR
 ## Key Patterns
 
 - **Result Pattern**: `{ ok: true; data: T } | { ok: false; error: string }` — todos los Use Cases retornan este tipo discriminado
-- **Dependency Injection**: Use Cases reciben repositorios en el constructor (`new SignInUseCase(new BetterAuthRepository())`)
+- **Dependency Injection**: Use Cases reciben repositorios en el constructor (`new SignIn(new BetterAuthRepository())`)
 - **Value Objects**: Se validan al crearse vía factory estático (`Email.create()`), nunca existen en estado inválido
 - **Private Constructor + Factories**: `User.create()` (con defaults) y `User.from()` (reconstitución exacta) vs constructor privado
 - **Cookies as Opaque Data**: El dominio no sabe de HTTP; el repositorio pasa strings de cookies como metadata que el controller forwardea

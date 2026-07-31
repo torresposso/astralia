@@ -268,8 +268,8 @@ Always use `@/` path alias (maps to `src/`):
 ---
 import Base from '@/layouts/Base.astro'
 import AuthLayout from '@/layouts/AuthLayout.astro'
-import FormError from '@/components/FormError.astro'
-import SubmitButton from '@/components/SubmitButton.astro'
+import FormError from '@/components/ui/FormError.astro'
+import SubmitButton from '@/components/ui/SubmitButton.astro'
 ---
 ```
 
@@ -565,31 +565,26 @@ When a second language is added, use a `src/lib/i18n.ts` module with key-value t
 
 ## Testing Strategy
 
-> Note: Tests are not yet set up in this project. The following standards document the intended approach for when they are.
-
 ### Test Types
 
-- **Component testing** (future): Test Astro components and Alpine interactions with Playwright or Vitest + @astrojs/test
-- **API testing** (future): Test better-auth endpoints with Vitest
-- **E2E testing** (future): Test critical flows (signup -> signin -> dashboard -> logout) with Playwright
+- **Architecture contract testing**: Clean Architecture boundaries enforcement via `tests/architecture.test.ts`
+- **Integration testing**: Flow and controller integration test suites under `tests/integration/`
+- **Unit testing** (future): Domain entity and value object unit tests with Vitest
 
-### Test File Location
+### Test Directory Structure
 
-Tests live next to the source file:
+Tests live under the root `tests/` directory:
 
 ```
-src/
-├── pages/
-│   ├── signin.astro
-│   └── signin.test.ts        <- co-located
-├── lib/
-│   ├── alpine-utils.ts
-│   └── alpine-utils.test.ts  <- co-located
+tests/
+├── architecture.test.ts  <- Clean Architecture contract verification
+├── integration/          <- Flow and endpoint integration tests
+└── helpers/              <- Test utilities and setup
 ```
 
 ### Test Runner
 
-Vitest (consistent with Astro ecosystem).
+Vitest (`npm test` / `npx vitest run`).
 
 ---
 
