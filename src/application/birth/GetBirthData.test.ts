@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { GetBirthDataUseCase } from './GetBirthDataUseCase'
+import { GetBirthData } from './GetBirthData'
 import { MockBirthDataRepository } from './__mocks__/MockBirthDataRepository'
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
-describe('GetBirthDataUseCase', () => {
+describe('GetBirthData', () => {
   let repository: MockBirthDataRepository
-  let useCase: GetBirthDataUseCase
+  let useCase: GetBirthData
 
   beforeEach(() => {
     repository = new MockBirthDataRepository()
-    useCase = new GetBirthDataUseCase(repository)
+    useCase = new GetBirthData(repository)
   })
 
   it('should return birth data when id exists and belongs to the user', async () => {

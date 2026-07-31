@@ -6,7 +6,7 @@
  */
 
 import type { APIRoute } from 'astro'
-import { CalculateChartUseCase } from '@/application/chart/CalculateChartUseCase'
+import { CalculateChart } from '@/application/chart/CalculateChart'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
 import { CaelusChartCalculator } from '@/infrastructure/chart/CaelusChartCalculator'
@@ -33,7 +33,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     })
   }
 
-  const useCase = new CalculateChartUseCase(
+  const useCase = new CalculateChart(
     new DrizzleBirthDataRepository(),
     new CaelusBirthConverter(),
     new CaelusChartCalculator(),

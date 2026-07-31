@@ -31,6 +31,9 @@ The authenticated landing page after sign in. Shows the User's profile informati
 The date, time, and geographic location a User provides to compute their astrological Chart. Stores Birth Date, Birth Time, Time Unknown flag, and resolved Coordinates + Timezone. Owns the raw input data that flows into CaelusBirthConverter. Belongs to a User.
 _Avoid_: Dato de nacimiento
 
+**Save Birth Data**:
+The Application module (src/application/birth/SaveBirthData.ts) that owns the create/update pipeline for Birth Data. Validates input via BirthData, applies the UT conversion gate policy (rejects nonexistent local times, warns on ambiguous DST), emits domain warnings (WarningCode), and writes through IBirthDataRepository. Exposes create(input, ownerId) and update(id, input, ownerId).
+
 **Birth Date**:
 The calendar date (year, month, day) of a User's birth. Must be between 1800-01-01 and today. Belongs to Birth Data.
 _Avoid_: Fecha de nacimiento, DOB
@@ -61,6 +64,12 @@ _Avoid_: Hora local
 
 **Universal Time (UT)**:
 The birth time converted from Local Time to the UT (UTC) timescale. Required for Caelus astrological calculations. Computed by CaelusBirthConverter in Infrastructure.
+
+**Ambiguous Time**:
+A local birth time that occurred twice due to a DST fall-back overlap. The UT conversion returns multiple candidates and the earliest is used, and the save pipeline emits the 'dst-ambiguous' warning.
+
+**Nonexistent Time**:
+A local birth time that never occurred due to a DST spring-forward gap. The save pipeline rejects it (NonexistentTimeError → HTTP 400).
 
 **Geocoding**:
 The process of resolving a Place of Birth text to Coordinates and Timezone. Uses the Open-Meteo Geocoding API (free, no API key). Runs client-side for city autocomplete; the resolved lat/lon/tz is sent to the server.

@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { CalculateChartUseCase } from './CalculateChartUseCase'
+import { CalculateChart } from './CalculateChart'
 import { MockBirthDataRepository } from '@/application/birth/__mocks__/MockBirthDataRepository'
 import { MockBirthToUTConverter } from '@/application/birth/__mocks__/MockBirthToUTConverter'
 import { MockChartCalculator } from '@/domain/chart/__mocks__/MockChartCalculator'
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
-describe('CalculateChartUseCase', () => {
+describe('CalculateChart', () => {
   const validInput = {
     birthDataId: 'birth_123',
     userId: 'user_123',
@@ -43,7 +43,7 @@ describe('CalculateChartUseCase', () => {
     it('should return success with natal chart when input is valid', async () => {
       const repository = new MockBirthDataRepository()
       seedBirthData(repository)
-      const useCase = new CalculateChartUseCase(
+      const useCase = new CalculateChart(
         repository,
         new MockBirthToUTConverter(),
         new MockChartCalculator(),
@@ -62,7 +62,7 @@ describe('CalculateChartUseCase', () => {
 
     it('should return 404 error when birth data is not found', async () => {
       const repository = new MockBirthDataRepository()
-      const useCase = new CalculateChartUseCase(
+      const useCase = new CalculateChart(
         repository,
         new MockBirthToUTConverter(),
         new MockChartCalculator(),
@@ -82,7 +82,7 @@ describe('CalculateChartUseCase', () => {
     it('should return 401 error when user is not authorized', async () => {
       const repository = new MockBirthDataRepository()
       seedBirthData(repository)
-      const useCase = new CalculateChartUseCase(
+      const useCase = new CalculateChart(
         repository,
         new MockBirthToUTConverter(),
         new MockChartCalculator(),
@@ -105,7 +105,7 @@ describe('CalculateChartUseCase', () => {
         time: null,
         timeUnknown: true,
       })
-      const useCase = new CalculateChartUseCase(
+      const useCase = new CalculateChart(
         repository,
         new MockBirthToUTConverter(),
         new MockChartCalculator(),
@@ -122,7 +122,7 @@ describe('CalculateChartUseCase', () => {
     it('should return error when UT conversion fails', async () => {
       const repository = new MockBirthDataRepository()
       seedBirthData(repository)
-      const useCase = new CalculateChartUseCase(
+      const useCase = new CalculateChart(
         repository,
         new MockBirthToUTConverter().withFailure('Error al convertir a UT'),
         new MockChartCalculator(),

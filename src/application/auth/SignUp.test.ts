@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { SignUpUseCase } from './SignUpUseCase'
+import { SignUp } from './SignUp'
 import { MockAuthRepository } from './__mocks__/MockAuthRepository'
 
-describe('SignUpUseCase', () => {
+describe('SignUp', () => {
   it('should return success with redirect to /dashboard when all data is valid', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository())
+    const useCase = new SignUp(new MockAuthRepository())
     const result = await useCase.execute({
       name: 'Test User',
       email: 'user@example.com',
@@ -20,7 +20,7 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return validation error when name is empty', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository())
+    const useCase = new SignUp(new MockAuthRepository())
     const result = await useCase.execute({
       name: '',
       email: 'user@example.com',
@@ -35,7 +35,7 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return validation error when name is only whitespace', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository())
+    const useCase = new SignUp(new MockAuthRepository())
     const result = await useCase.execute({
       name: '   ',
       email: 'user@example.com',
@@ -50,7 +50,7 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return validation error when email is invalid', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository())
+    const useCase = new SignUp(new MockAuthRepository())
     const result = await useCase.execute({
       name: 'Test User',
       email: 'not-an-email',
@@ -67,7 +67,7 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return validation error when password is too short', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository())
+    const useCase = new SignUp(new MockAuthRepository())
     const result = await useCase.execute({
       name: 'Test User',
       email: 'user@example.com',
@@ -84,7 +84,7 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return validation error when passwords do not match', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository())
+    const useCase = new SignUp(new MockAuthRepository())
     const result = await useCase.execute({
       name: 'Test User',
       email: 'user@example.com',
@@ -99,7 +99,7 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return repository error when the repository fails', async () => {
-    const useCase = new SignUpUseCase(
+    const useCase = new SignUp(
       new MockAuthRepository().withFailure('Email already registered'),
     )
     const result = await useCase.execute({

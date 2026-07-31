@@ -131,7 +131,7 @@ describe('DrizzleBirthDataRepository', () => {
       expect(valuesArg.timeUnknown).toBe(true)
     })
 
-    it('should return error when database insertion fails', async () => {
+    it('should return UnavailableError when database insertion fails', async () => {
       const mockDb = await getMockedDb()
       vi.mocked(mockDb.insert).mockReturnValueOnce(
         mockBuilder({
@@ -147,11 +147,12 @@ describe('DrizzleBirthDataRepository', () => {
 
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toContain('SQLITE_CONSTRAINT')
+        expect(result.error.type).toBe('unavailable')
+        expect(result.error.message).toContain('SQLITE_CONSTRAINT')
       }
     })
 
-    it('should handle non-Error exceptions gracefully', async () => {
+    it('should handle non-Error exceptions gracefully as UnavailableError', async () => {
       const mockDb = await getMockedDb()
       vi.mocked(mockDb.insert).mockReturnValueOnce(
         mockBuilder({
@@ -163,7 +164,8 @@ describe('DrizzleBirthDataRepository', () => {
 
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toContain('desconocido')
+        expect(result.error.type).toBe('unavailable')
+        expect(result.error.message).toContain('desconocido')
       }
     })
   })
@@ -198,12 +200,14 @@ describe('DrizzleBirthDataRepository', () => {
 
       const result = await repository.findById('bd_123')
 
-      expect(result).not.toBeNull()
-      expect(result?.id).toBe('bd_123')
-      expect(result?.placeName).toBe('Cartagena, Bolívar, Colombia')
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.data.id).toBe('bd_123')
+        expect(result.data.placeName).toBe('Cartagena, Bolívar, Colombia')
+      }
     })
 
-    it('should return null when record does not exist or db throws', async () => {
+    it('should return NotFoundError when the record does not exist', async () => {
       const mockDb = await getMockedDb()
       vi.mocked(mockDb.select).mockReturnValue(
         mockBuilder({
@@ -216,7 +220,30 @@ describe('DrizzleBirthDataRepository', () => {
       )
 
       const result = await repository.findById('non_existent')
-      expect(result).toBeNull()
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('not-found')
+      }
+    })
+
+    it('should return UnavailableError when the database throws', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.select).mockReturnValue(
+        mockBuilder({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockRejectedValue(new Error('connection lost')),
+            }),
+          }),
+        }),
+      )
+
+      const result = await repository.findById('bd_123')
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('unavailable')
+        expect(result.error.message).toContain('connection lost')
+      }
     })
   })
 
@@ -235,10 +262,29 @@ describe('DrizzleBirthDataRepository', () => {
         expect(result.data.id).toBe('bd_123')
       }
     })
+
+    it('should return UnavailableError when the database update fails', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.update).mockReturnValue(
+        mockBuilder({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockRejectedValue(new Error('update failed')),
+          }),
+        }),
+      )
+
+      const result = await repository.update('bd_123', validBirthData)
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('unavailable')
+        expect(result.error.message).toContain('update failed')
+      }
+    })
   })
 
   describe('delete', () => {
-    it('should delete record from db and return true', async () => {
+    it('should delete record from db and return ok', async () => {
       const mockDb = await getMockedDb()
       vi.mocked(mockDb.delete).mockReturnValue(
         mockBuilder({
@@ -249,7 +295,42 @@ describe('DrizzleBirthDataRepository', () => {
       )
 
       const result = await repository.delete('bd_123')
-      expect(result).toBe(true)
+      expect(result.ok).toBe(true)
+    })
+
+    it('should return NotFoundError when no row was deleted', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.delete).mockReturnValue(
+        mockBuilder({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      )
+
+      const result = await repository.delete('non_existent')
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('not-found')
+      }
+    })
+
+    it('should return UnavailableError when the database delete fails', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.delete).mockReturnValue(
+        mockBuilder({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockRejectedValue(new Error('delete failed')),
+          }),
+        }),
+      )
+
+      const result = await repository.delete('bd_123')
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.type).toBe('unavailable')
+        expect(result.error.message).toContain('delete failed')
+      }
     })
   })
 })

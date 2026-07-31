@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro'
-import { SearchCitiesUseCase } from '@/application/birth/SearchCitiesUseCase'
+import { SearchCities } from '@/application/birth/SearchCities'
 import { OpenMeteoGeocodingAdapter } from '@/infrastructure/birth/OpenMeteoGeocodingAdapter'
 
 export const GET: APIRoute = async ({ locals, url }) => {
@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
   const query = url.searchParams.get('q')?.trim() ?? ''
 
-  const useCase = new SearchCitiesUseCase(new OpenMeteoGeocodingAdapter())
+  const useCase = new SearchCities(new OpenMeteoGeocodingAdapter())
   const result = await useCase.execute({ query })
 
   if (!result.ok) {

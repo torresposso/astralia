@@ -1,5 +1,5 @@
 /**
- * Sign Up Use Case
+ * Sign Up
  *
  * Orchestrates the registration flow:
  * 1. Validates name presence
@@ -16,7 +16,7 @@
 
 import { Email } from '@/domain/auth/Email.vo'
 import { Password } from '@/domain/auth/Password.vo'
-import type { IAuthRepository } from '@/domain/auth/repositories/IAuthRepository'
+import type { IAuthRepository } from '@/domain/auth/ports/IAuthRepository'
 
 export interface SignUpRequest {
   name: string
@@ -29,7 +29,7 @@ export type SignUpResponse =
   | { ok: true; redirectTo: string; cookies?: string[] }
   | { ok: false; error: string }
 
-export class SignUpUseCase {
+export class SignUp {
   constructor(private readonly authRepo: IAuthRepository) {}
 
   async execute(request: SignUpRequest): Promise<SignUpResponse> {

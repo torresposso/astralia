@@ -1,5 +1,5 @@
 /**
- * Sign Out Use Case
+ * Sign Out
  *
  * Orchestrates the sign-out flow:
  * 1. Delegates session destruction to the repository
@@ -11,13 +11,13 @@
  * - Testable by passing a mock IAuthRepository
  */
 
-import type { IAuthRepository } from '@/domain/auth/repositories/IAuthRepository'
+import type { IAuthRepository } from '@/domain/auth/ports/IAuthRepository'
 
 export type SignOutResponse =
   | { ok: true; redirectTo: string; cookies?: string[] }
   | { ok: false; error: string }
 
-export class SignOutUseCase {
+export class SignOut {
   constructor(private readonly authRepo: IAuthRepository) {}
 
   async execute(input?: { headers?: Headers }): Promise<SignOutResponse> {

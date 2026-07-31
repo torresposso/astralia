@@ -3,15 +3,20 @@
  *
  * Route: /api/birth-data/[id]
  * Supports GET, PUT, DELETE operations for saved birth data.
+ * PUT delegates to SaveBirthData; GET/DELETE keep their existing handlers.
  */
 
 import type { APIRoute } from 'astro'
 import { parseAndAuthenticateRequest } from '../_helpers/controllerHelper'
-import { GetBirthDataUseCase } from '@/application/birth/GetBirthDataUseCase'
-import { UpdateBirthDataUseCase } from '@/application/birth/UpdateBirthDataUseCase'
-import { DeleteBirthDataUseCase } from '@/application/birth/DeleteBirthDataUseCase'
+import { GetBirthData } from '@/application/birth/GetBirthData'
+import {
+  SaveBirthData,
+  toBirthDataInput,
+} from '@/application/birth/SaveBirthData'
+import { DeleteBirthData } from '@/application/birth/DeleteBirthData'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
+import { birthDataErrorResponse, saveSuccessResponse } from './responseMapping'
 
 export const GET: APIRoute = async (context) => {
   const req = await parseAndAuthenticateRequest(context, { requireId: true })
@@ -19,7 +24,7 @@ export const GET: APIRoute = async (context) => {
 
   const { id = '', userId } = req.data
 
-  const useCase = new GetBirthDataUseCase(new DrizzleBirthDataRepository())
+  const useCase = new GetBirthData(new DrizzleBirthDataRepository())
   const result = await useCase.execute({ id, userId })
 
   if (!result.ok) {
@@ -44,42 +49,15 @@ export const PUT: APIRoute = async (context) => {
 
   const { id = '', userId, body = {} } = req.data
 
-  const useCase = new UpdateBirthDataUseCase(
+  const saveBirthData = new SaveBirthData(
     new DrizzleBirthDataRepository(),
     new CaelusBirthConverter(),
   )
-  const result = await useCase.execute({
-    id,
-    userId,
-    date: (body.date as { year: number; month: number; day: number }) ?? {
-      year: 0,
-      month: 0,
-      day: 0,
-    },
-    time: body.time as { hour: number; minute: number } | null | undefined,
-    timeUnknown: (body.timeUnknown as boolean) ?? false,
-    latitude: (body.latitude as number) ?? 0,
-    longitude: (body.longitude as number) ?? 0,
-    timezone: (body.timezone as string) ?? '',
-    placeName: (body.placeName as string) ?? '',
-  })
+  const result = await saveBirthData.update(id, toBirthDataInput(body), userId)
 
-  if (!result.ok) {
-    const status =
-      result.error === 'Datos de nacimiento no encontrados' ? 404 : 400
-    return new Response(JSON.stringify({ error: result.error }), {
-      status,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  if (!result.ok) return birthDataErrorResponse(result.error)
 
-  return new Response(
-    JSON.stringify({
-      data: result.data.toJSON(),
-      ...(result.warning ? { warning: result.warning } : {}),
-    }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } },
-  )
+  return saveSuccessResponse(result)
 }
 
 export const DELETE: APIRoute = async (context) => {
@@ -88,7 +66,7 @@ export const DELETE: APIRoute = async (context) => {
 
   const { id = '', userId } = req.data
 
-  const useCase = new DeleteBirthDataUseCase(new DrizzleBirthDataRepository())
+  const useCase = new DeleteBirthData(new DrizzleBirthDataRepository())
   const result = await useCase.execute({ id, userId })
 
   if (!result.ok) {

@@ -1,5 +1,5 @@
 /**
- * Sign In Use Case
+ * Sign In
  *
  * Orchestrates the sign-in flow:
  * 1. Validates email format (domain rule)
@@ -15,7 +15,7 @@
 
 import { Email } from '@/domain/auth/Email.vo'
 import { Password } from '@/domain/auth/Password.vo'
-import type { IAuthRepository } from '@/domain/auth/repositories/IAuthRepository'
+import type { IAuthRepository } from '@/domain/auth/ports/IAuthRepository'
 
 export interface SignInRequest {
   email: string
@@ -26,7 +26,7 @@ export type SignInResponse =
   | { ok: true; redirectTo: string; cookies?: string[] }
   | { ok: false; error: string }
 
-export class SignInUseCase {
+export class SignIn {
   constructor(private readonly authRepo: IAuthRepository) {}
 
   async execute(request: SignInRequest): Promise<SignInResponse> {

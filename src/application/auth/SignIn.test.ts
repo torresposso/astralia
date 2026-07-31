@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { SignInUseCase } from './SignInUseCase'
+import { SignIn } from './SignIn'
 import { MockAuthRepository } from './__mocks__/MockAuthRepository'
 
-describe('SignInUseCase', () => {
+describe('SignIn', () => {
   it('should return success with redirect to /dashboard when email and password are valid', async () => {
-    const useCase = new SignInUseCase(new MockAuthRepository())
+    const useCase = new SignIn(new MockAuthRepository())
     const result = await useCase.execute({
       email: 'user@example.com',
       password: 'SecurePass123',
@@ -18,7 +18,7 @@ describe('SignInUseCase', () => {
   })
 
   it('should return validation error when email is invalid', async () => {
-    const useCase = new SignInUseCase(new MockAuthRepository())
+    const useCase = new SignIn(new MockAuthRepository())
     const result = await useCase.execute({
       email: 'invalid-email',
       password: 'SecurePass123',
@@ -33,7 +33,7 @@ describe('SignInUseCase', () => {
   })
 
   it('should return validation error when email is empty', async () => {
-    const useCase = new SignInUseCase(new MockAuthRepository())
+    const useCase = new SignIn(new MockAuthRepository())
     const result = await useCase.execute({
       email: '',
       password: 'SecurePass123',
@@ -46,7 +46,7 @@ describe('SignInUseCase', () => {
   })
 
   it('should return validation error when password is too short', async () => {
-    const useCase = new SignInUseCase(new MockAuthRepository())
+    const useCase = new SignIn(new MockAuthRepository())
     const result = await useCase.execute({
       email: 'user@example.com',
       password: '1234567',
@@ -61,7 +61,7 @@ describe('SignInUseCase', () => {
   })
 
   it('should return validation error when password is empty', async () => {
-    const useCase = new SignInUseCase(new MockAuthRepository())
+    const useCase = new SignIn(new MockAuthRepository())
     const result = await useCase.execute({
       email: 'user@example.com',
       password: '',
@@ -74,7 +74,7 @@ describe('SignInUseCase', () => {
   })
 
   it('should return repository error when the repository fails', async () => {
-    const useCase = new SignInUseCase(
+    const useCase = new SignIn(
       new MockAuthRepository().withFailure('Invalid credentials'),
     )
     const result = await useCase.execute({

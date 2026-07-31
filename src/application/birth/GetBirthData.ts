@@ -1,10 +1,10 @@
 /**
- * Get Birth Data Use Case
+ * Get Birth Data
  *
  * Retrieves a birth data record by userId.
  */
 
-import type { IBirthDataRepository } from '@/domain/birth/repositories/IBirthDataRepository'
+import type { IBirthDataRepository } from '@/domain/birth/ports/IBirthDataRepository'
 import type { BirthData } from '@/domain/birth/BirthData.vo'
 
 export type GetBirthDataInput = {
@@ -15,7 +15,7 @@ export type GetBirthDataInput = {
 export type GetBirthDataOutput =
   { ok: true; data: BirthData } | { ok: false; error: string }
 
-export class GetBirthDataUseCase {
+export class GetBirthData {
   constructor(private readonly repository: IBirthDataRepository) {}
 
   async execute(input: GetBirthDataInput): Promise<GetBirthDataOutput> {
@@ -24,11 +24,17 @@ export class GetBirthDataUseCase {
     }
 
     if (input.id && input.id.trim()) {
-      const birthData = await this.repository.findById(input.id)
-      if (!birthData || birthData.userId !== input.userId) {
+      const lookup = await this.repository.findById(input.id)
+      if (!lookup.ok) {
+        if (lookup.error.type === 'unavailable') {
+          return { ok: false, error: lookup.error.message }
+        }
         return { ok: false, error: 'Datos de nacimiento no encontrados' }
       }
-      return { ok: true, data: birthData }
+      if (lookup.data.userId !== input.userId) {
+        return { ok: false, error: 'Datos de nacimiento no encontrados' }
+      }
+      return { ok: true, data: lookup.data }
     }
 
     const birthData = await this.repository.findByUserId(input.userId)

@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { DeleteBirthDataUseCase } from './DeleteBirthDataUseCase'
+import { DeleteBirthData } from './DeleteBirthData'
 import { MockBirthDataRepository } from './__mocks__/MockBirthDataRepository'
 import { BirthData } from '@/domain/birth/BirthData.vo'
 
-describe('DeleteBirthDataUseCase', () => {
+describe('DeleteBirthData', () => {
   let repository: MockBirthDataRepository
-  let useCase: DeleteBirthDataUseCase
+  let useCase: DeleteBirthData
 
   beforeEach(() => {
     repository = new MockBirthDataRepository()
-    useCase = new DeleteBirthDataUseCase(repository)
+    useCase = new DeleteBirthData(repository)
   })
 
   it('should delete birth data successfully by id', async () => {
@@ -36,7 +36,7 @@ describe('DeleteBirthDataUseCase', () => {
 
     expect(result.message).toContain('eliminados exitosamente')
     const found = await repository.findById('bd_123')
-    expect(found).toBeNull()
+    expect(found.ok).toBe(false)
   })
 
   it('should return error when birth data does not exist', async () => {

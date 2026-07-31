@@ -1,13 +1,10 @@
 /**
- * Open-Meteo Geocoding Service Adapter
+ * Open-Meteo Geocoding Adapter
  *
- * Infrastructure implementation of IGeocodingService using Open-Meteo REST API.
+ * Infrastructure implementation of IGeocoder using Open-Meteo REST API.
  */
 
-import type {
-  IGeocodingService,
-  GeocodingResult,
-} from '@/domain/birth/services/IGeocodingService'
+import type { IGeocoder, GeocodingResult } from '@/domain/birth/ports/IGeocoder'
 
 interface OpenMeteoResult {
   name: string
@@ -18,7 +15,7 @@ interface OpenMeteoResult {
   timezone?: string
 }
 
-export class OpenMeteoGeocodingAdapter implements IGeocodingService {
+export class OpenMeteoGeocodingAdapter implements IGeocoder {
   async searchCities(query: string): Promise<GeocodingResult[]> {
     const trimmed = query.trim()
     if (trimmed.length < 2) return []

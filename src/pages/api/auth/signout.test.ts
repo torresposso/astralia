@@ -12,7 +12,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 
 // ---------------------------------------------------------------------------
 // Mock @/infrastructure/auth/auth.config — vi.mock is hoisted to the top by vitest
-// The SignOutUseCase delegates to BetterAuthRepository, which calls
+// The SignOut delegates to BetterAuthRepository, which calls
 // `auth` from @/infrastructure/auth/auth.config. Mocking prevents real better-auth/database calls.
 // ---------------------------------------------------------------------------
 vi.mock('@/infrastructure/auth/auth.config', () => ({

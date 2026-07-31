@@ -5,7 +5,7 @@ import type {
   SignInInput,
   SignUpInput,
   AuthResult,
-} from '@/domain/auth/repositories/IAuthRepository'
+} from '@/domain/auth/ports/IAuthRepository'
 
 /**
  * Shared mock for IAuthRepository used across all Application test files.

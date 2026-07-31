@@ -1,16 +1,13 @@
 /**
- * Search Cities Use Case
+ * Search Cities
  *
  * Application orchestration for geocoding city searches.
  *
- * Depends only on the domain port IGeocodingService, so controllers never
+ * Depends only on the domain port IGeocoder, so controllers never
  * instantiate infrastructure adapters directly (Clean Architecture).
  */
 
-import type {
-  IGeocodingService,
-  GeocodingResult,
-} from '@/domain/birth/services/IGeocodingService'
+import type { IGeocoder, GeocodingResult } from '@/domain/birth/ports/IGeocoder'
 
 export type SearchCitiesInput = {
   query: string
@@ -19,8 +16,8 @@ export type SearchCitiesInput = {
 export type SearchCitiesOutput =
   { ok: true; data: GeocodingResult[] } | { ok: false; error: string }
 
-export class SearchCitiesUseCase {
-  constructor(private readonly geocodingService: IGeocodingService) {}
+export class SearchCities {
+  constructor(private readonly geocodingService: IGeocoder) {}
 
   async execute(input: SearchCitiesInput): Promise<SearchCitiesOutput> {
     const query = input.query.trim()

@@ -1,20 +1,27 @@
 /**
- * Mock BirthData Repository
+ * Mock Birth Data Repository
  *
  * Shared mock for IBirthDataRepository used across all Application test files.
+ *
+ * Truthful failure modes mirror the port contract:
+ * - a store miss returns NotFoundError
+ * - withUnavailable() makes every operation report UnavailableError
+ *   (never a fake null / false)
  */
 
 import { vi } from 'vitest'
 import type {
   IBirthDataRepository,
-  BirthDataResult,
-} from '@/domain/birth/repositories/IBirthDataRepository'
+  BirthDataDeleteResult,
+  BirthDataLookupResult,
+  BirthDataWriteResult,
+} from '@/domain/birth/ports/IBirthDataRepository'
 import { BirthData, type BirthDataProps } from '@/domain/birth/BirthData.vo'
 
 export class MockBirthDataRepository implements IBirthDataRepository {
   private store = new Map<string, BirthData>()
-  private shouldFail = false
-  private failMessage = 'Error en el repositorio de datos de nacimiento'
+  private unavailable = false
+  private unavailableMessage = 'Birth data store unavailable'
 
   // Spy-able methods for assertion
   readonly createSpy = vi.fn<IBirthDataRepository['create']>()
@@ -29,11 +36,11 @@ export class MockBirthDataRepository implements IBirthDataRepository {
 
   // ---- IBirthDataRepository implementation ----
 
-  async create(birthData: BirthData): Promise<BirthDataResult> {
+  async create(birthData: BirthData): Promise<BirthDataWriteResult> {
     return this.createSpy(birthData)
   }
 
-  async findById(id: string): Promise<BirthData | null> {
+  async findById(id: string): Promise<BirthDataLookupResult> {
     return this.findByIdSpy(id)
   }
 
@@ -41,11 +48,14 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     return this.findByUserIdSpy(userId)
   }
 
-  async update(id: string, birthData: BirthData): Promise<BirthDataResult> {
+  async update(
+    id: string,
+    birthData: BirthData,
+  ): Promise<BirthDataWriteResult> {
     return this.updateSpy(id, birthData)
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string): Promise<BirthDataDeleteResult> {
     return this.deleteSpy(id)
   }
 
@@ -57,17 +67,17 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     return this
   }
 
-  /** Configure the mock to return errors */
-  withFailure(message?: string): this {
-    this.shouldFail = true
-    if (message) this.failMessage = message
+  /** Configure the mock to report UnavailableError on every operation */
+  withUnavailable(message?: string): this {
+    this.unavailable = true
+    if (message) this.unavailableMessage = message
     return this
   }
 
   /** Reset to default state and clear spies */
   reset(): this {
-    this.shouldFail = false
-    this.failMessage = 'Error en el repositorio de datos de nacimiento'
+    this.unavailable = false
+    this.unavailableMessage = 'Birth data store unavailable'
     this.store.clear()
     this.createSpy.mockReset()
     this.findByIdSpy.mockReset()
@@ -81,7 +91,12 @@ export class MockBirthDataRepository implements IBirthDataRepository {
   /** Set up default spy implementations */
   private setupDefaultBehavior(): void {
     this.createSpy.mockImplementation(async (birthData: BirthData) => {
-      if (this.shouldFail) return { ok: false, error: this.failMessage }
+      if (this.unavailable) {
+        return {
+          ok: false,
+          error: { type: 'unavailable', message: this.unavailableMessage },
+        }
+      }
       const id = birthData.id ?? 'mock_birth_data_id'
       const saved = BirthData.from({
         ...birthData.toJSON(),
@@ -94,12 +109,24 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     })
 
     this.findByIdSpy.mockImplementation(async (id: string) => {
-      if (this.shouldFail) return null
-      return this.store.get(id) ?? null
+      if (this.unavailable) {
+        return {
+          ok: false,
+          error: { type: 'unavailable', message: this.unavailableMessage },
+        }
+      }
+      const found = this.store.get(id)
+      if (!found) {
+        return {
+          ok: false,
+          error: { type: 'not-found', message: 'Birth data not found' },
+        }
+      }
+      return { ok: true, data: found }
     })
 
     this.findByUserIdSpy.mockImplementation(async (userId: string) => {
-      if (this.shouldFail) return null
+      if (this.unavailable) return null
       for (const data of this.store.values()) {
         if (data.userId === userId) return data
       }
@@ -108,7 +135,12 @@ export class MockBirthDataRepository implements IBirthDataRepository {
 
     this.updateSpy.mockImplementation(
       async (id: string, birthData: BirthData) => {
-        if (this.shouldFail) return { ok: false, error: this.failMessage }
+        if (this.unavailable) {
+          return {
+            ok: false,
+            error: { type: 'unavailable', message: this.unavailableMessage },
+          }
+        }
         const updated = BirthData.from({
           ...birthData.toJSON(),
           id,
@@ -121,8 +153,20 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     )
 
     this.deleteSpy.mockImplementation(async (id: string) => {
-      if (this.shouldFail) return false
-      return this.store.delete(id)
+      if (this.unavailable) {
+        return {
+          ok: false,
+          error: { type: 'unavailable', message: this.unavailableMessage },
+        }
+      }
+      if (!this.store.has(id)) {
+        return {
+          ok: false,
+          error: { type: 'not-found', message: 'Birth data not found' },
+        }
+      }
+      this.store.delete(id)
+      return { ok: true }
     })
   }
 }

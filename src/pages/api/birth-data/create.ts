@@ -3,16 +3,19 @@
  *
  * Clean Architecture controller layer:
  * 1. Parse HTTP request body
- * 2. Instantiate the Use Case with the concrete repository and UT converter
- * 3. Execute the Use Case
- * 4. Build the JSON HTTP response
+ * 2. Call SaveBirthData (the save pipeline module)
+ * 3. Map warnings to es-CO UI strings and errors to HTTP status codes
  */
 
 import type { APIRoute } from 'astro'
 import { parseAndAuthenticateRequest } from '../_helpers/controllerHelper'
-import { CreateBirthDataUseCase } from '@/application/birth/CreateBirthDataUseCase'
+import {
+  SaveBirthData,
+  toBirthDataInput,
+} from '@/application/birth/SaveBirthData'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
+import { birthDataErrorResponse, saveSuccessResponse } from './responseMapping'
 
 export const POST: APIRoute = async (context) => {
   const req = await parseAndAuthenticateRequest(context, {
@@ -22,38 +25,14 @@ export const POST: APIRoute = async (context) => {
 
   const { userId, body = {} } = req.data
 
-  const useCase = new CreateBirthDataUseCase(
+  const saveBirthData = new SaveBirthData(
     new DrizzleBirthDataRepository(),
     new CaelusBirthConverter(),
   )
 
-  const result = await useCase.execute({
-    userId,
-    date: (body.date as { year: number; month: number; day: number }) ?? {
-      year: 0,
-      month: 0,
-      day: 0,
-    },
-    time: body.time as { hour: number; minute: number } | null | undefined,
-    timeUnknown: (body.timeUnknown as boolean) ?? false,
-    latitude: (body.latitude as number) ?? 0,
-    longitude: (body.longitude as number) ?? 0,
-    timezone: (body.timezone as string) ?? '',
-    placeName: (body.placeName as string) ?? '',
-  })
+  const result = await saveBirthData.create(toBirthDataInput(body), userId)
 
-  if (!result.ok) {
-    return new Response(JSON.stringify({ error: result.error }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+  if (!result.ok) return birthDataErrorResponse(result.error)
 
-  return new Response(
-    JSON.stringify({
-      data: result.data.toJSON(),
-      ...(result.warning ? { warning: result.warning } : {}),
-    }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } },
-  )
+  return saveSuccessResponse(result)
 }

@@ -14,7 +14,7 @@ import type {
   SignInInput,
   SignUpInput,
   AuthResult,
-} from '@/domain/auth/repositories/IAuthRepository'
+} from '@/domain/auth/ports/IAuthRepository'
 import { isAPIError } from 'better-auth/api'
 
 function mapBetterAuthUser(betterAuthUser: {

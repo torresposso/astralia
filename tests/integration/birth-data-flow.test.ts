@@ -1,76 +1,86 @@
 /**
- * Birth Data Flow — End-to-End Integration Tests
+ * Birth Data Flow — Integration Tests
  *
- * Tests the complete Birth Data pipeline:
- * HTTP Request → API Route → Use Case → Drizzle Repository → Mocked DB
+ * Tests the complete Birth Data pipeline at the repository seam:
+ * HTTP Request → API Route → Application module → Mocked Repository (in-memory)
+ *
+ * The DrizzleBirthDataRepository module is mocked with an in-memory
+ * implementation of IBirthDataRepository so the routes run against the real
+ * application modules (SaveBirthData, GetBirthData, DeleteBirthData) without
+ * hand-building Drizzle query-builder chains.
  *
  * Validates full CRUD operations working seamlessly together:
- * 1. Create flow: POST /api/birth-data → BirthData VO → CreateBirthDataUseCase → Repository → DB
- * 2. Read flow: GET /api/birth-data/[id] → GetBirthDataUseCase → Repository → DB → Response
- * 3. Update flow: PUT /api/birth-data/[id] → UpdateBirthDataUseCase → Repository → DB → Response
- * 4. Delete flow: DELETE /api/birth-data/[id] → DeleteBirthDataUseCase → Repository → DB → Response
+ * 1. Create flow: POST /api/birth-data → SaveBirthData → Repository → DB
+ * 2. Read flow: GET /api/birth-data/[id] → GetBirthData → Repository → DB → Response
+ * 3. Update flow: PUT /api/birth-data/[id] → SaveBirthData → Repository → DB → Response
+ * 4. Delete flow: DELETE /api/birth-data/[id] → DeleteBirthData → Repository → DB → Response
  */
 
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import { BirthData, type BirthDataProps } from '@/domain/birth/BirthData.vo'
 
-// Shape of a stored birth-data row, as returned by the mocked Drizzle layer.
-interface BirthDataRow {
-  id: string
-  userId: string
-  birthYear: number
-  birthMonth: number
-  birthDay: number
-  birthHour: number | null
-  birthMinute: number | null
-  timeUnknown: boolean
-  latitude: number
-  longitude: number
-  timezone: string
-  placeName: string
-}
+// In-memory store backing the mocked repository (module seam).
+const dbStore: BirthData[] = []
 
-// In-memory mock DB state to simulate real Drizzle persistence layer
-const dbStore: BirthDataRow[] = []
+vi.mock('@/infrastructure/birth/DrizzleBirthDataRepository', () => {
+  class InMemoryDrizzleBirthDataRepository {
+    async create(birthData: BirthData) {
+      const id = birthData.id ?? `bd_${dbStore.length + 1}`
+      const saved = BirthData.from({
+        ...birthData.toJSON(),
+        id,
+      } as unknown as BirthDataProps)
+      dbStore.push(saved)
+      return { ok: true, data: saved }
+    }
 
-vi.mock('@/infrastructure/db', () => ({
-  db: {
-    insert: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockImplementation(async (row: BirthDataRow) => {
-        dbStore.push({ ...row })
-        return undefined
-      }),
-    })),
-    select: vi.fn().mockImplementation(() => ({
-      from: vi.fn().mockImplementation(() => ({
-        where: vi.fn().mockImplementation(() => ({
-          limit: vi.fn().mockImplementation(async () => {
-            return dbStore.map((row) => ({ ...row }))
-          }),
-        })),
-      })),
-    })),
-    update: vi.fn().mockImplementation(() => ({
-      set: vi.fn().mockImplementation((updates: Partial<BirthDataRow>) => ({
-        where: vi.fn().mockImplementation(async () => {
-          if (dbStore.length > 0) {
-            Object.assign(dbStore[0], updates)
-          }
-          return undefined
-        }),
-      })),
-    })),
-    delete: vi.fn().mockImplementation(() => ({
-      where: vi.fn().mockImplementation(() => ({
-        returning: vi.fn().mockImplementation(async () => {
-          const deleted = dbStore.map((row) => ({ id: row.id }))
-          dbStore.length = 0
-          return deleted
-        }),
-      })),
-    })),
-  },
-}))
+    async findById(id: string) {
+      const found = dbStore.find((b) => b.id === id)
+      if (!found) {
+        return {
+          ok: false,
+          error: { type: 'not-found', message: 'Birth data not found' },
+        }
+      }
+      return { ok: true, data: found }
+    }
+
+    async findByUserId(userId: string) {
+      return dbStore.find((b) => b.userId === userId) ?? null
+    }
+
+    async update(id: string, birthData: BirthData) {
+      const idx = dbStore.findIndex((b) => b.id === id)
+      if (idx === -1) {
+        return {
+          ok: false,
+          error: { type: 'not-found', message: 'Birth data not found' },
+        }
+      }
+      const saved = BirthData.from({
+        ...birthData.toJSON(),
+        id,
+      } as unknown as BirthDataProps)
+      dbStore[idx] = saved
+      return { ok: true, data: saved }
+    }
+
+    async delete(id: string) {
+      const idx = dbStore.findIndex((b) => b.id === id)
+      if (idx === -1) {
+        return {
+          ok: false,
+          error: { type: 'not-found', message: 'Birth data not found' },
+        }
+      }
+      dbStore.splice(idx, 1)
+      return { ok: true }
+    }
+  }
+
+  return { DrizzleBirthDataRepository: InMemoryDrizzleBirthDataRepository }
+})
 
 import * as createEndpoint from '@/pages/api/birth-data/create'
 import * as idEndpoint from '@/pages/api/birth-data/[id]'
@@ -93,6 +103,21 @@ function authedLocals(userId: string): App.Locals {
   } as unknown as App.Locals
 }
 
+function seedStoredBirthData(id: string, userId: string): void {
+  const result = BirthData.from({
+    id,
+    userId,
+    date: { year: 1990, month: 6, day: 10 },
+    time: { hour: 10, minute: 30 },
+    timeUnknown: false,
+    latitude: 10.391,
+    longitude: -75.479,
+    timezone: 'America/Bogota',
+    placeName: 'Cartagena, Bolívar, Colombia',
+  })
+  dbStore.push(result)
+}
+
 describe('Birth Data End-to-End Pipeline Integration', () => {
   let container: AstroContainer
   const userId = 'usr_integration_123'
@@ -106,7 +131,7 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     dbStore.length = 0
   })
 
-  it('1. Create Flow: POST /api/birth-data creates a record in DB and returns 200', async () => {
+  it('1. Create Flow: POST /api/birth-data creates a record and returns 200', async () => {
     const response = await container.renderToResponse(createEndpoint, {
       routeType: 'endpoint',
       locals: authedLocals(userId),
@@ -138,22 +163,9 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     expect(dbStore[0].userId).toBe(userId)
   })
 
-  it('2. Read Flow: GET /api/birth-data/[id] retrieves stored record from DB', async () => {
-    // Seed DB store
-    dbStore.push({
-      id: 'bd_test_id',
-      userId,
-      birthYear: 1990,
-      birthMonth: 6,
-      birthDay: 10,
-      birthHour: 10,
-      birthMinute: 30,
-      timeUnknown: false,
-      latitude: 10.391,
-      longitude: -75.479,
-      timezone: 'America/Bogota',
-      placeName: 'Cartagena, Bolívar, Colombia',
-    })
+  it('2. Read Flow: GET /api/birth-data/[id] retrieves the stored record', async () => {
+    // Seed the store
+    seedStoredBirthData('bd_test_id', userId)
 
     const response = await container.renderToResponse(idEndpoint, {
       routeType: 'endpoint',
@@ -171,22 +183,9 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     expect(json.data.placeName).toBe('Cartagena, Bolívar, Colombia')
   })
 
-  it('3. Update Flow: PUT /api/birth-data/[id] validates and updates DB record', async () => {
-    // Seed DB store
-    dbStore.push({
-      id: 'bd_test_id',
-      userId,
-      birthYear: 1990,
-      birthMonth: 6,
-      birthDay: 10,
-      birthHour: 10,
-      birthMinute: 30,
-      timeUnknown: false,
-      latitude: 10.391,
-      longitude: -75.479,
-      timezone: 'America/Bogota',
-      placeName: 'Cartagena, Bolívar, Colombia',
-    })
+  it('3. Update Flow: PUT /api/birth-data/[id] validates and updates the record', async () => {
+    // Seed the store
+    seedStoredBirthData('bd_test_id', userId)
 
     const response = await container.renderToResponse(idEndpoint, {
       routeType: 'endpoint',
@@ -213,25 +212,12 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     expect(json.data.date).toEqual({ year: 1995, month: 12, day: 25 })
 
     expect(dbStore[0].placeName).toBe('Bogotá, Cundinamarca, Colombia')
-    expect(dbStore[0].birthYear).toBe(1995)
+    expect(dbStore[0].date.year).toBe(1995)
   })
 
-  it('4. Delete Flow: DELETE /api/birth-data/[id] removes record from DB', async () => {
-    // Seed DB store
-    dbStore.push({
-      id: 'bd_test_id',
-      userId,
-      birthYear: 1990,
-      birthMonth: 6,
-      birthDay: 10,
-      birthHour: 10,
-      birthMinute: 30,
-      timeUnknown: false,
-      latitude: 10.391,
-      longitude: -75.479,
-      timezone: 'America/Bogota',
-      placeName: 'Cartagena, Bolívar, Colombia',
-    })
+  it('4. Delete Flow: DELETE /api/birth-data/[id] removes the record', async () => {
+    // Seed the store
+    seedStoredBirthData('bd_test_id', userId)
 
     const deleteResponse = await container.renderToResponse(idEndpoint, {
       routeType: 'endpoint',

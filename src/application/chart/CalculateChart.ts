@@ -1,5 +1,5 @@
 /**
- * Calculate Chart Use Case
+ * Calculate Chart
  *
  * Orchestrates the natal chart calculation flow:
  * 1. Loads birth data from the repository
@@ -9,7 +9,7 @@
  * 5. Returns a warning when time is unknown
  */
 
-import type { IBirthDataRepository } from '@/domain/birth/repositories/IBirthDataRepository'
+import type { IBirthDataRepository } from '@/domain/birth/ports/IBirthDataRepository'
 import type { IBirthToUTConverter } from '@/domain/birth/ports/IBirthToUTConverter'
 import type { IChartCalculator } from '@/domain/chart/ports/IChartCalculator'
 import type { NatalChart } from '@/domain/chart/NatalChart.vo'
@@ -23,7 +23,7 @@ export type CalculateChartOutput =
   | { ok: true; data: NatalChart; warning?: string }
   | { ok: false; error: string; status?: number }
 
-export class CalculateChartUseCase {
+export class CalculateChart {
   constructor(
     private readonly repository: IBirthDataRepository,
     private readonly utConverter: IBirthToUTConverter,
@@ -32,14 +32,18 @@ export class CalculateChartUseCase {
 
   async execute(input: CalculateChartInput): Promise<CalculateChartOutput> {
     // 1. Get the birth data
-    const birthData = await this.repository.findById(input.birthDataId)
-    if (!birthData) {
+    const lookup = await this.repository.findById(input.birthDataId)
+    if (!lookup.ok) {
+      if (lookup.error.type === 'unavailable') {
+        return { ok: false, error: lookup.error.message, status: 500 }
+      }
       return {
         ok: false,
         error: 'Datos de nacimiento no encontrados',
         status: 404,
       }
     }
+    const birthData = lookup.data
 
     // 2. Verify ownership
     if (birthData.userId !== input.userId) {

@@ -1,5 +1,5 @@
 /**
- * Geocoding Service Interface
+ * Geocoder Port
  *
  * Domain / Application interface for location geocoding lookup.
  */
@@ -11,6 +11,6 @@ export type GeocodingResult = {
   timezone: string
 }
 
-export interface IGeocodingService {
+export interface IGeocoder {
   searchCities(query: string): Promise<GeocodingResult[]>
 }

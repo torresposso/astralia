@@ -2,7 +2,7 @@
 import Base from '@/layouts/Base.astro'
 import FormError from '@/components/ui/FormError.astro'
 import BirthDataCard from '@/components/birth/BirthDataCard.astro'
-import { GetBirthDataUseCase } from '@/application/birth/GetBirthDataUseCase'
+import { GetBirthData } from '@/application/birth/GetBirthData'
 import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthDataRepository'
 
 const session = Astro.locals.session
@@ -12,10 +12,8 @@ const user = Astro.locals.user!
 const initial = (user?.name || user?.email || '?').charAt(0).toUpperCase()
 
 // SSR fetch user's saved birth data via Use Case
-const getBirthDataUseCase = new GetBirthDataUseCase(
-  new DrizzleBirthDataRepository(),
-)
-const result = await getBirthDataUseCase.execute({ userId: user.id })
+const getBirthData = new GetBirthData(new DrizzleBirthDataRepository())
+const result = await getBirthData.execute({ userId: user.id })
 const initialData = result.ok ? result.data.toJSON() : null
 ---
 

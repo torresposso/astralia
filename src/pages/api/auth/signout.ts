@@ -9,11 +9,11 @@
  */
 
 import type { APIRoute } from 'astro'
-import { SignOutUseCase } from '@/application/auth/SignOutUseCase'
+import { SignOut } from '@/application/auth/SignOut'
 import { BetterAuthRepository } from '@/infrastructure/auth/BetterAuthRepository'
 
 export const POST: APIRoute = async ({ request }) => {
-  const useCase = new SignOutUseCase(new BetterAuthRepository())
+  const useCase = new SignOut(new BetterAuthRepository())
   const result = await useCase.execute({ headers: request.headers })
 
   if (!result.ok) {

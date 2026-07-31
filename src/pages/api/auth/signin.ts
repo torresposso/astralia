@@ -9,7 +9,7 @@
  */
 
 import type { APIRoute } from 'astro'
-import { SignInUseCase } from '@/application/auth/SignInUseCase'
+import { SignIn } from '@/application/auth/SignIn'
 import { BetterAuthRepository } from '@/infrastructure/auth/BetterAuthRepository'
 
 export const POST: APIRoute = async ({ request }) => {
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'Solicitud inválida' }, { status: 400 })
   }
 
-  const useCase = new SignInUseCase(new BetterAuthRepository())
+  const useCase = new SignIn(new BetterAuthRepository())
   const result = await useCase.execute({
     email: body.email ?? '',
     password: body.password ?? '',
