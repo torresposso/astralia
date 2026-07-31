@@ -9,8 +9,11 @@
 │  src/pages/      ·  src/components/       ·  src/layouts/   │
 ├─────────────────────────────────────────────────────────────┤
 │                     APPLICATION (Use Cases)                  │
-│  SignInUseCase   ·  SignUpUseCase  ·  SignOutUseCase        │
-│  src/application/auth/                                       │
+│  Auth: SignInUseCase · SignUpUseCase · SignOutUseCase        │
+│  Birth: CreateBirthData · GetBirthData · UpdateBirthData     │
+│  Chart: CalculateChartUseCase                                │
+│  src/application/auth/ · src/application/birth/              │
+│  src/application/chart/                                      │
 ├─────────────────────────────────────────────────────────────┤
 │                        DOMAIN (Core)                         │
 │  Entities  ·  Value Objects  ·  Repository Interfaces       │
@@ -42,6 +45,10 @@
 - **No depende de frameworks** — solo de interfaces del dominio
 - Cada Use Case tiene una sola responsabilidad
 - Retorna **Result pattern**: `{ ok: true, data } | { ok: false, error }`
+- Implemented use cases by bounded context:
+  - Auth: `SignInUseCase`, `SignUpUseCase`, `SignOutUseCase` (`src/application/auth/`)
+  - Birth Data: `CreateBirthDataUseCase`, `GetBirthDataUseCase`, `UpdateBirthDataUseCase`, `DeleteBirthDataUseCase`, `SearchCitiesUseCase` (`src/application/birth/`)
+  - Chart: `CalculateChartUseCase` (`src/application/chart/`)
 
 ### Infrastructure (`src/infrastructure/`)
 
@@ -57,11 +64,11 @@
 
 ## Bounded Contexts
 
-| Context    | Status          | Carpeta             |
-| ---------- | --------------- | ------------------- |
-| Auth       | ✅ Implementado | `src/*/auth/`       |
-| Chart      | 🚧 Planeado     | `src/*/chart/`      |
-| Birth Data | 🚧 Planeado     | `src/*/birth-data/` |
+| Context    | Status          | Folder         |
+| ---------- | --------------- | -------------- |
+| Auth       | ✅ Implementado | `src/*/auth/`  |
+| Chart      | ✅ Implementado | `src/*/chart/` |
+| Birth Data | ✅ Implementado | `src/*/birth/` |
 
 ## Data Flow
 
