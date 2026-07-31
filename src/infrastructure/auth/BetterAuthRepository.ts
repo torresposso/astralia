@@ -32,8 +32,12 @@ function mapBetterAuthUser(betterAuthUser: {
     email: betterAuthUser.email,
     emailVerified: betterAuthUser.emailVerified,
     image: betterAuthUser.image ?? null,
-    createdAt: betterAuthUser.createdAt ? new Date(betterAuthUser.createdAt) : undefined,
-    updatedAt: betterAuthUser.updatedAt ? new Date(betterAuthUser.updatedAt) : undefined,
+    createdAt: betterAuthUser.createdAt
+      ? new Date(betterAuthUser.createdAt)
+      : undefined,
+    updatedAt: betterAuthUser.updatedAt
+      ? new Date(betterAuthUser.updatedAt)
+      : undefined,
   })
 }
 
@@ -107,7 +111,9 @@ export class BetterAuthRepository implements IAuthRepository {
     }
   }
 
-  async signOut(input?: { headers?: Headers }): Promise<{ cookies?: string[] } | void> {
+  async signOut(input?: {
+    headers?: Headers
+  }): Promise<{ cookies?: string[] } | void> {
     const result = await auth.api.signOut({
       headers: input?.headers ?? new Headers(),
       returnHeaders: true,

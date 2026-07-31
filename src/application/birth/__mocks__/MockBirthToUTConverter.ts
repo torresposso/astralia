@@ -5,12 +5,16 @@
  */
 
 import { vi } from 'vitest'
-import type { IBirthToUTConverter, UTConversionResult } from '@/domain/birth/ports/IBirthToUTConverter'
+import type {
+  IBirthToUTConverter,
+  UTConversionResult,
+} from '@/domain/birth/ports/IBirthToUTConverter'
 import type { BirthData } from '@/domain/birth/BirthData.vo'
 
 export class MockBirthToUTConverter implements IBirthToUTConverter {
   private shouldFail = false
-  private failMessage = 'La fecha u hora de nacimiento no se puede convertir a Tiempo Universal (UT)'
+  private failMessage =
+    'La fecha u hora de nacimiento no se puede convertir a Tiempo Universal (UT)'
 
   readonly convertSpy = vi.fn<IBirthToUTConverter['convert']>()
 
@@ -30,7 +34,8 @@ export class MockBirthToUTConverter implements IBirthToUTConverter {
 
   reset(): this {
     this.shouldFail = false
-    this.failMessage = 'La fecha u hora de nacimiento no se puede convertir a Tiempo Universal (UT)'
+    this.failMessage =
+      'La fecha u hora de nacimiento no se puede convertir a Tiempo Universal (UT)'
     this.convertSpy.mockReset()
     this.setupDefaultBehavior()
     return this

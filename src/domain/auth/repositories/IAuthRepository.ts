@@ -33,10 +33,14 @@ export interface AuthResult {
 
 export interface IAuthRepository {
   /** Register a new user. Returns the created User or an error. */
-  signUp(input: SignUpInput): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }>
+  signUp(
+    input: SignUpInput,
+  ): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }>
 
   /** Sign in an existing user. Returns the User and session token or an error. */
-  signIn(input: SignInInput): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }>
+  signIn(
+    input: SignInInput,
+  ): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }>
 
   /** Sign out the current user. Optionally pass headers to identify the session. Returns Set-Cookie headers for clearing session cookies. */
   signOut(input?: { headers?: Headers }): Promise<{ cookies?: string[] } | void>

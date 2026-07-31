@@ -15,10 +15,18 @@ import { BetterAuthRepository } from '@/infrastructure/auth/BetterAuthRepository
 export const POST: APIRoute = async ({ request }) => {
   const contentType = request.headers.get('content-type') || ''
   if (!contentType.includes('application/json')) {
-    return Response.json({ error: 'Content-Type must be application/json' }, { status: 415 })
+    return Response.json(
+      { error: 'Content-Type must be application/json' },
+      { status: 415 },
+    )
   }
 
-  let body: { name?: string; email?: string; password?: string; confirmPassword?: string }
+  let body: {
+    name?: string
+    email?: string
+    password?: string
+    confirmPassword?: string
+  }
   try {
     body = await request.json()
   } catch {

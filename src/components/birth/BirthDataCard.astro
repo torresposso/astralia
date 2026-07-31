@@ -3,7 +3,7 @@ import FormError from '@/components/ui/FormError.astro'
 import SubmitButton from '@/components/ui/SubmitButton.astro'
 
 interface Props {
-  initialData?: Record<string, any> | null
+  initialData?: Record<string, unknown> | null
   userId: string
 }
 
@@ -19,43 +19,91 @@ const userIdJson = JSON.stringify(userId ?? '')
 >
   <!-- SUCCESS ALERT -->
   <template x-if="success">
-    <div class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/60 rounded-xl text-emerald-800 dark:text-emerald-200 text-sm flex items-center justify-between">
+    <div
+      class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/60 rounded-xl text-emerald-800 dark:text-emerald-200 text-sm flex items-center justify-between"
+    >
       <div class="flex items-center gap-2">
-        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        <svg
+          class="w-5 h-5 text-emerald-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"></path>
         </svg>
         <span x-text="success"></span>
       </div>
-      <button @click="success = ''" class="text-emerald-500 hover:text-emerald-700 font-bold">&times;</button>
+      <button
+        @click="success = ''"
+        class="text-emerald-500 hover:text-emerald-700 font-bold"
+        >&times;</button
+      >
     </div>
   </template>
 
   <!-- WARNING BANNER -->
   <template x-if="warning">
-    <div class="mb-6 p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-xl text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between">
+    <div
+      class="mb-6 p-4 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 rounded-xl text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between"
+    >
       <div class="flex items-center gap-2">
-        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        <svg
+          class="w-5 h-5 text-amber-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          ></path>
         </svg>
         <span x-text="warning"></span>
       </div>
-      <button @click="warning = ''" class="text-amber-500 hover:text-amber-700 font-bold">&times;</button>
+      <button
+        @click="warning = ''"
+        class="text-amber-500 hover:text-amber-700 font-bold">&times;</button
+      >
     </div>
   </template>
 
   <!-- VIEW MODE: Saved Birth Data Card -->
   <template x-if="hasData && !editing">
     <div class="space-y-6">
-      <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-4">
+      <div
+        class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          <div
+            class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              ></path>
             </svg>
           </div>
           <div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Datos de Nacimiento</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Información astronómica guardada</p>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Datos de Nacimiento
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Información astronómica guardada
+            </p>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -70,45 +118,85 @@ const userIdJson = JSON.stringify(userId ?? '')
             :disabled="deleting"
             class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-950/80 dark:hover:bg-red-900 text-red-600 dark:text-red-300 transition-colors disabled:opacity-50"
           >
-            <span x-text="deleting ? 'Eliminando...' : 'Eliminar'">Eliminar</span>
+            <span x-text="deleting ? 'Eliminando...' : 'Eliminar'"
+              >Eliminar</span
+            >
           </button>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Date -->
-        <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-          <span class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold block mb-1">Fecha</span>
-          <span class="text-base font-bold text-gray-900 dark:text-gray-100" x-text="formattedDate"></span>
+        <div
+          class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+        >
+          <span
+            class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold block mb-1"
+            >Fecha</span
+          >
+          <span
+            class="text-base font-bold text-gray-900 dark:text-gray-100"
+            x-text="formattedDate"></span>
         </div>
 
         <!-- Time -->
-        <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-          <span class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold block mb-1">Hora</span>
+        <div
+          class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+        >
+          <span
+            class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold block mb-1"
+            >Hora</span
+          >
           <template x-if="data.time">
-            <span class="text-base font-bold text-gray-900 dark:text-gray-100" x-text="formattedTime"></span>
+            <span
+              class="text-base font-bold text-gray-900 dark:text-gray-100"
+              x-text="formattedTime"></span>
           </template>
           <template x-if="!data.time">
-            <span class="inline-block px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 rounded-full">
+            <span
+              class="inline-block px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 rounded-full"
+            >
               Hora Desconocida (12:00 PM)
             </span>
           </template>
         </div>
 
         <!-- Location -->
-        <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-          <span class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold block mb-1">Lugar</span>
-          <span class="text-base font-bold text-gray-900 dark:text-gray-100 block truncate" x-text="data.placeName"></span>
-          <span class="text-xs text-gray-500 dark:text-gray-400 block mt-0.5" x-text="data.timezone"></span>
+        <div
+          class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800"
+        >
+          <span
+            class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold block mb-1"
+            >Lugar</span
+          >
+          <span
+            class="text-base font-bold text-gray-900 dark:text-gray-100 block truncate"
+            x-text="data.placeName"></span>
+          <span
+            class="text-xs text-gray-500 dark:text-gray-400 block mt-0.5"
+            x-text="data.timezone"></span>
         </div>
       </div>
 
       <template x-if="data.timeUnknown">
-        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-          <svg class="w-4 h-4 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        <div
+          class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2"
+        >
+          <svg
+            class="w-4 h-4 flex-shrink-0 text-amber-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            ></path>
           </svg>
-          No registraste la hora exacta. Los cálculos de casas usarán el sistema Whole Sign y serán aproximados.
+          No registraste la hora exacta. Los cálculos de casas usarán el sistema Whole
+          Sign y serán aproximados.
         </div>
       </template>
     </div>
@@ -117,10 +205,18 @@ const userIdJson = JSON.stringify(userId ?? '')
   <!-- FORM MODE: Create or Edit Birth Data -->
   <template x-if="!hasData || editing">
     <form @submit.prevent="saveData" class="space-y-6">
-      <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-4">
+      <div
+        class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-4"
+      >
         <div>
-          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100" x-text="hasData ? 'Editar Datos de Nacimiento' : 'Ingresa tus Datos de Nacimiento'"></h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Requerido para generar tu Carta Natal astronómica</p>
+          <h3
+            class="text-xl font-bold text-gray-900 dark:text-gray-100"
+            x-text="hasData ? 'Editar Datos de Nacimiento' : 'Ingresa tus Datos de Nacimiento'"
+          >
+          </h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Requerido para generar tu Carta Natal astronómica
+          </p>
         </div>
         <template x-if="hasData">
           <button
@@ -138,7 +234,9 @@ const userIdJson = JSON.stringify(userId ?? '')
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <!-- Date input -->
         <div>
-          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+          <label
+            class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+          >
             Fecha de Nacimiento *
           </label>
           <input
@@ -154,10 +252,14 @@ const userIdJson = JSON.stringify(userId ?? '')
         <!-- Time input + TimeUnknown -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+            <label
+              class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+            >
               Hora de Nacimiento
             </label>
-            <label class="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 cursor-pointer">
+            <label
+              class="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 x-model="form.timeUnknown"
@@ -178,7 +280,9 @@ const userIdJson = JSON.stringify(userId ?? '')
 
       <!-- City Search Autocomplete (Open-Meteo) -->
       <div class="relative">
-        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+        <label
+          class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+        >
           Lugar de Nacimiento (Ciudad) *
         </label>
         <div class="relative">
@@ -192,14 +296,37 @@ const userIdJson = JSON.stringify(userId ?? '')
           />
           <div class="absolute right-3 top-2.5 text-gray-400">
             <template x-if="isSearching">
-              <svg class="w-5 h-5 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                class="w-5 h-5 animate-spin text-indigo-500"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
             </template>
             <template x-if="!isSearching">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </template>
           </div>
@@ -207,16 +334,28 @@ const userIdJson = JSON.stringify(userId ?? '')
 
         <!-- Autocomplete Suggestions Dropdown -->
         <template x-if="suggestions.length > 0">
-          <ul class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700/60">
+          <ul
+            class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700/60"
+          >
             <template x-for="(item, index) in suggestions" :key="index">
               <li
                 @click="selectCity(item)"
                 class="px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 cursor-pointer transition-colors"
               >
-                <div class="font-bold text-sm text-gray-900 dark:text-gray-100" x-text="item.displayName"></div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-3 mt-0.5">
+                <div
+                  class="font-bold text-sm text-gray-900 dark:text-gray-100"
+                  x-text="item.displayName"
+                >
+                </div>
+                <div
+                  class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-3 mt-0.5"
+                >
                   <span>TZ: <strong x-text="item.timezone"></strong></span>
-                  <span>Lat: <strong x-text="item.latitude.toFixed(2)"></strong>, Lon: <strong x-text="item.longitude.toFixed(2)"></strong></span>
+                  <span
+                    >Lat: <strong x-text="item.latitude.toFixed(2)"></strong>,
+                    Lon: <strong x-text="item.longitude.toFixed(2)"
+                    ></strong></span
+                  >
                 </div>
               </li>
             </template>
@@ -226,249 +365,303 @@ const userIdJson = JSON.stringify(userId ?? '')
 
       <!-- Resolved Details Badge -->
       <template x-if="form.placeName && form.timezone">
-        <div class="p-3 bg-indigo-50/70 dark:bg-indigo-950/50 rounded-xl border border-indigo-100 dark:border-indigo-900/40 text-xs text-indigo-900 dark:text-indigo-200 space-y-1">
+        <div
+          class="p-3 bg-indigo-50/70 dark:bg-indigo-950/50 rounded-xl border border-indigo-100 dark:border-indigo-900/40 text-xs text-indigo-900 dark:text-indigo-200 space-y-1"
+        >
           <div class="flex items-center justify-between">
             <span class="font-bold">Ubicación Resuelta:</span>
-            <span class="text-indigo-600 dark:text-indigo-400 font-mono text-[11px]" x-text="form.timezone"></span>
+            <span
+              class="text-indigo-600 dark:text-indigo-400 font-mono text-[11px]"
+              x-text="form.timezone"></span>
           </div>
-          <div class="text-gray-600 dark:text-gray-300 font-medium" x-text="form.placeName"></div>
+          <div
+            class="text-gray-600 dark:text-gray-300 font-medium"
+            x-text="form.placeName"
+          >
+          </div>
           <div class="text-gray-400 text-[11px]">
-            Coordenadas: Lat <span x-text="form.latitude"></span>, Lon <span x-text="form.longitude"></span>
+            Coordenadas: Lat <span x-text="form.latitude"></span>, Lon <span
+              x-text="form.longitude"></span>
           </div>
         </div>
       </template>
 
       <!-- Submit button -->
       <div class="pt-2">
-        <SubmitButton defaultText={hasData ? "Guardar Cambios" : "Guardar Datos de Nacimiento"} loadingText="Guardando..." />
+        <SubmitButton
+          text={hasData ? 'Guardar Cambios' : 'Guardar Datos de Nacimiento'}
+          loadingText="Guardando..."
+        />
       </div>
     </form>
   </template>
 </div>
 
 <script>
-import { registerComponent } from '@/lib/alpine-utils'
+  import { registerComponent } from '@/lib/alpine-utils'
 
-registerComponent('birthDataCard', (initialData: any = null, userId: string = '') => ({
-  userId: userId || '',
-  hasData: Boolean(initialData),
-  data: initialData || null,
-  editing: false,
-  saving: false,
-  deleting: false,
-  error: '',
-  warning: '',
-  success: '',
-  isSearching: false,
-  suggestions: [] as any[],
+  // Client-side contract for the birth-data API response and the geocoding
+  // suggestions endpoint — deliberately mirrors the API JSON shapes without
+  // importing Domain/Infrastructure types into client code.
+  interface BirthDataRecord {
+    id?: string
+    date?: { year: number; month: number; day: number } | null
+    time?: { hour: number; minute: number } | null
+    timeUnknown?: boolean
+    latitude?: number
+    longitude?: number
+    timezone?: string
+    placeName?: string
+  }
 
-  form: {
-    dateStr: '',
-    timeStr: '12:00',
-    timeUnknown: false,
-    placeSearch: '',
-    placeName: '',
-    latitude: 0,
-    longitude: 0,
-    timezone: '',
-  },
+  interface CitySuggestion {
+    displayName: string
+    latitude: number
+    longitude: number
+    timezone: string
+  }
 
-  init() {
-    if (this.data) {
-      this.populateFormFromData()
-    }
-  },
+  registerComponent(
+    'birthDataCard',
+    (initialData: BirthDataRecord | null = null, userId: string = '') => ({
+      userId: userId || '',
+      hasData: Boolean(initialData),
+      data: initialData || null,
+      editing: false,
+      saving: false,
+      deleting: false,
+      error: '',
+      warning: '',
+      success: '',
+      isSearching: false,
+      suggestions: [] as CitySuggestion[],
 
-  get todayStr() {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  },
+      form: {
+        dateStr: '',
+        timeStr: '12:00',
+        timeUnknown: false,
+        placeSearch: '',
+        placeName: '',
+        latitude: 0,
+        longitude: 0,
+        timezone: '',
+      },
 
-  get formattedDate() {
-    if (!this.data?.date) return ''
-    const { year, month, day } = this.data.date
-    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  },
+      init() {
+        if (this.data) {
+          this.populateFormFromData()
+        }
+      },
 
-  get formattedTime() {
-    if (!this.data?.time) return ''
-    const { hour, minute } = this.data.time
-    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-  },
+      get todayStr() {
+        const today = new Date()
+        return today.toISOString().split('T')[0]
+      },
 
-  populateFormFromData() {
-    if (!this.data) return
-    const { date, time, timeUnknown, placeName, latitude, longitude, timezone } = this.data
-    this.form.dateStr = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
-    if (time) {
-      this.form.timeStr = `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`
-    }
-    this.form.timeUnknown = Boolean(timeUnknown)
-    this.form.placeSearch = placeName || ''
-    this.form.placeName = placeName || ''
-    this.form.latitude = latitude || 0
-    this.form.longitude = longitude || 0
-    this.form.timezone = timezone || ''
-  },
+      get formattedDate() {
+        if (!this.data?.date) return ''
+        const { year, month, day } = this.data.date
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      },
 
-  startEdit() {
-    this.populateFormFromData()
-    this.editing = true
-    this.error = ''
-    this.success = ''
-  },
+      get formattedTime() {
+        if (!this.data?.time) return ''
+        const { hour, minute } = this.data.time
+        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+      },
 
-  cancelEdit() {
-    this.editing = false
-    this.error = ''
-  },
+      populateFormFromData() {
+        const data = this.data
+        if (!data?.date) return
+        const {
+          date,
+          time,
+          timeUnknown,
+          placeName,
+          latitude,
+          longitude,
+          timezone,
+        } = data
+        this.form.dateStr = `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+        if (time) {
+          this.form.timeStr = `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}`
+        }
+        this.form.timeUnknown = Boolean(timeUnknown)
+        this.form.placeSearch = placeName || ''
+        this.form.placeName = placeName || ''
+        this.form.latitude = latitude || 0
+        this.form.longitude = longitude || 0
+        this.form.timezone = timezone || ''
+      },
 
-  onPlaceInput() {
-    // Clear resolved values if user modifies text without selecting suggestion
-    if (this.form.placeSearch !== this.form.placeName) {
-      this.form.placeName = ''
-      this.form.latitude = 0
-      this.form.longitude = 0
-      this.form.timezone = ''
-    }
-    this.searchCities()
-  },
+      startEdit() {
+        this.populateFormFromData()
+        this.editing = true
+        this.error = ''
+        this.success = ''
+      },
 
-  async searchCities() {
-    const query = this.form.placeSearch.trim()
-    if (query.length < 2) {
-      this.suggestions = []
-      return
-    }
+      cancelEdit() {
+        this.editing = false
+        this.error = ''
+      },
 
-    this.isSearching = true
-    try {
-      const res = await fetch(`/api/geo/search?q=${encodeURIComponent(query)}`, {
-        headers: { 'x-user-id': this.userId },
-      })
-      const json = await res.json()
-      if (json.results && json.results.length > 0) {
-        this.suggestions = json.results
-      } else {
+      onPlaceInput() {
+        // Clear resolved values if user modifies text without selecting suggestion
+        if (this.form.placeSearch !== this.form.placeName) {
+          this.form.placeName = ''
+          this.form.latitude = 0
+          this.form.longitude = 0
+          this.form.timezone = ''
+        }
+        this.searchCities()
+      },
+
+      async searchCities() {
+        const query = this.form.placeSearch.trim()
+        if (query.length < 2) {
+          this.suggestions = []
+          return
+        }
+
+        this.isSearching = true
+        try {
+          // Authenticated via the session cookie — never send client-supplied identity.
+          const res = await fetch(
+            `/api/geo/search?q=${encodeURIComponent(query)}`,
+          )
+          const json = await res.json()
+          if (json.results && json.results.length > 0) {
+            this.suggestions = json.results
+          } else {
+            this.suggestions = []
+          }
+        } catch {
+          this.suggestions = []
+        } finally {
+          this.isSearching = false
+        }
+      },
+
+      selectCity(item: CitySuggestion) {
+        this.form.placeName = item.displayName
+        this.form.placeSearch = item.displayName
+        this.form.latitude = item.latitude
+        this.form.longitude = item.longitude
+        this.form.timezone = item.timezone
         this.suggestions = []
-      }
-    } catch {
-      this.suggestions = []
-    } finally {
-      this.isSearching = false
-    }
-  },
+        this.error = ''
+      },
 
-  selectCity(item: any) {
-    this.form.placeName = item.displayName
-    this.form.placeSearch = item.displayName
-    this.form.latitude = item.latitude
-    this.form.longitude = item.longitude
-    this.form.timezone = item.timezone
-    this.suggestions = []
-    this.error = ''
-  },
+      async saveData() {
+        if (!this.form.placeName || !this.form.timezone) {
+          this.error =
+            'Por favor selecciona una ciudad válida de la lista desplegable.'
+          return
+        }
 
-  async saveData() {
-    if (!this.form.placeName || !this.form.timezone) {
-      this.error = 'Por favor selecciona una ciudad válida de la lista desplegable.'
-      return
-    }
+        this.saving = true
+        this.error = ''
+        this.warning = ''
+        this.success = ''
 
-    this.saving = true
-    this.error = ''
-    this.warning = ''
-    this.success = ''
+        // Parse date
+        const [year, month, day] = this.form.dateStr.split('-').map(Number)
 
-    // Parse date
-    const [year, month, day] = this.form.dateStr.split('-').map(Number)
+        // Parse time
+        let time: { hour: number; minute: number } | null = null
+        if (!this.form.timeUnknown && this.form.timeStr) {
+          const [hour, minute] = this.form.timeStr.split(':').map(Number)
+          time = { hour, minute }
+        }
 
-    // Parse time
-    let time: { hour: number; minute: number } | null = null
-    if (!this.form.timeUnknown && this.form.timeStr) {
-      const [hour, minute] = this.form.timeStr.split(':').map(Number)
-      time = { hour, minute }
-    }
+        const payload = {
+          date: { year, month, day },
+          time,
+          timeUnknown: this.form.timeUnknown,
+          latitude: this.form.latitude,
+          longitude: this.form.longitude,
+          timezone: this.form.timezone,
+          placeName: this.form.placeName,
+        }
 
-    const payload = {
-      userId: this.userId,
-      date: { year, month, day },
-      time,
-      timeUnknown: this.form.timeUnknown,
-      latitude: this.form.latitude,
-      longitude: this.form.longitude,
-      timezone: this.form.timezone,
-      placeName: this.form.placeName,
-    }
+        try {
+          const birthDataId = this.data?.id
+          const isUpdate = Boolean(this.hasData && birthDataId)
+          const url = isUpdate
+            ? `/api/birth-data/${birthDataId}`
+            : '/api/birth-data/create'
+          const method = isUpdate ? 'PUT' : 'POST'
 
-    try {
-      const isUpdate = this.hasData && this.data?.id
-      const url = isUpdate ? `/api/birth-data/${this.data.id}` : '/api/birth-data/create'
-      const method = isUpdate ? 'PUT' : 'POST'
+          // Authenticated via the session cookie — never send client-supplied identity.
+          const res = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          })
 
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-id': this.userId,
-        },
-        body: JSON.stringify(payload),
-      })
+          const json = await res.json()
 
-      const json = await res.json()
+          if (!res.ok) {
+            this.error =
+              json.error || 'Error al guardar los datos de nacimiento'
+            this.saving = false
+            return
+          }
 
-      if (!res.ok) {
-        this.error = json.error || 'Error al guardar los datos de nacimiento'
-        this.saving = false
-        return
-      }
+          this.data = json.data
+          this.hasData = true
+          this.editing = false
+          this.success = isUpdate
+            ? 'Datos de nacimiento actualizados exitosamente'
+            : 'Datos de nacimiento guardados exitosamente'
+          if (json.warning) {
+            this.warning = json.warning
+          }
+        } catch {
+          this.error = 'Error de conexión al guardar los datos de nacimiento'
+        } finally {
+          this.saving = false
+        }
+      },
 
-      this.data = json.data
-      this.hasData = true
-      this.editing = false
-      this.success = isUpdate ? 'Datos de nacimiento actualizados exitosamente' : 'Datos de nacimiento guardados exitosamente'
-      if (json.warning) {
-        this.warning = json.warning
-      }
-    } catch {
-      this.error = 'Error de conexión al guardar los datos de nacimiento'
-    } finally {
-      this.saving = false
-    }
-  },
+      async deleteData() {
+        const birthDataId = this.data?.id
+        if (!birthDataId) return
+        if (!confirm('¿Estás seguro de eliminar tus datos de nacimiento?'))
+          return
 
-  async deleteData() {
-    if (!this.data?.id) return
-    if (!confirm('¿Estás seguro de eliminar tus datos de nacimiento?')) return
+        this.deleting = true
+        this.error = ''
+        this.success = ''
 
-    this.deleting = true
-    this.error = ''
-    this.success = ''
+        try {
+          // Authenticated via the session cookie — never send client-supplied identity.
+          const res = await fetch(`/api/birth-data/${birthDataId}`, {
+            method: 'DELETE',
+          })
 
-    try {
-      const res = await fetch(`/api/birth-data/${this.data.id}`, {
-        method: 'DELETE',
-        headers: { 'x-user-id': this.userId },
-      })
+          const json = await res.json()
+          if (!res.ok) {
+            this.error = json.error || 'Error al eliminar los datos'
+            this.deleting = false
+            return
+          }
 
-      const json = await res.json()
-      if (!res.ok) {
-        this.error = json.error || 'Error al eliminar los datos'
-        this.deleting = false
-        return
-      }
-
-      this.data = null
-      this.hasData = false
-      this.editing = false
-      this.form.placeSearch = ''
-      this.form.placeName = ''
-      this.success = 'Datos de nacimiento eliminados exitosamente'
-    } catch {
-      this.error = 'Error de conexión al eliminar los datos'
-    } finally {
-      this.deleting = false
-    }
-  },
-}))
+          this.data = null
+          this.hasData = false
+          this.editing = false
+          this.form.placeSearch = ''
+          this.form.placeName = ''
+          this.success = 'Datos de nacimiento eliminados exitosamente'
+        } catch {
+          this.error = 'Error de conexión al eliminar los datos'
+        } finally {
+          this.deleting = false
+        }
+      },
+    }),
+  )
 </script>

@@ -15,7 +15,9 @@ import { DrizzleBirthDataRepository } from '@/infrastructure/birth/DrizzleBirthD
 import { CaelusBirthConverter } from '@/infrastructure/birth/CaelusBirthConverter'
 
 export const POST: APIRoute = async (context) => {
-  const req = await parseAndAuthenticateRequest(context, { requireJsonBody: true })
+  const req = await parseAndAuthenticateRequest(context, {
+    requireJsonBody: true,
+  })
   if (!req.ok) return req.response
 
   const { userId, body = {} } = req.data
@@ -27,7 +29,11 @@ export const POST: APIRoute = async (context) => {
 
   const result = await useCase.execute({
     userId,
-    date: (body.date as { year: number; month: number; day: number }) ?? { year: 0, month: 0, day: 0 },
+    date: (body.date as { year: number; month: number; day: number }) ?? {
+      year: 0,
+      month: 0,
+      day: 0,
+    },
     time: body.time as { hour: number; minute: number } | null | undefined,
     timeUnknown: (body.timeUnknown as boolean) ?? false,
     latitude: (body.latitude as number) ?? 0,
@@ -37,10 +43,10 @@ export const POST: APIRoute = async (context) => {
   })
 
   if (!result.ok) {
-    return new Response(
-      JSON.stringify({ error: result.error }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
-    )
+    return new Response(JSON.stringify({ error: result.error }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   return new Response(

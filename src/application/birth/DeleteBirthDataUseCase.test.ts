@@ -40,7 +40,10 @@ describe('DeleteBirthDataUseCase', () => {
   })
 
   it('should return error when birth data does not exist', async () => {
-    const result = await useCase.execute({ id: 'non_existent', userId: 'usr_1' })
+    const result = await useCase.execute({
+      id: 'non_existent',
+      userId: 'usr_1',
+    })
 
     expect(result.ok).toBe(false)
     if (!result.ok) {

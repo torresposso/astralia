@@ -1,4 +1,11 @@
-import { Planet, ZodiacSign, AspectType, HouseSystem, ZodiacType, AdditionalPointType } from '@/domain/chart/enums'
+import {
+  Planet,
+  ZodiacSign,
+  AspectType,
+  HouseSystem,
+  ZodiacType,
+  AdditionalPointType,
+} from '@/domain/chart/enums'
 import { PlanetPosition } from '@/domain/chart/PlanetPosition.vo'
 import { Angles } from '@/domain/chart/Angles.vo'
 import { HouseCusp } from '@/domain/chart/HouseCusp.vo'
@@ -13,7 +20,7 @@ import type { Aspect as AspectVo } from '@/domain/chart/Aspect.vo'
 import type { AdditionalPoint as AdditionalPointVo } from '@/domain/chart/AdditionalPoint.vo'
 
 // Caelus chart shape — matches caelus v0.23.0 API
-interface CaelusChartBody {
+export interface CaelusChartBody {
   lon: number
   retrograde: boolean
   sign: string
@@ -21,15 +28,16 @@ interface CaelusChartBody {
   house: number
 }
 
-interface CaelusAspect {
+export interface CaelusAspect {
   a: string
   b: string
   aspect: string
   orb: number
   phase: string
+  strength?: number
 }
 
-interface CaelusLot {
+export interface CaelusLot {
   lot: string
   lon: number
   sign: string
@@ -37,11 +45,11 @@ interface CaelusLot {
   house: number
 }
 
-interface CaelusChart {
+export interface CaelusChart {
   jdUt: number
   zodiac: string
   houseSystem: string
-  bodies: Record<string, CaelusChartBody>
+  bodies: Record<string, CaelusChartBody | undefined>
   unavailable: string[]
   angles: { asc: number; mc: number; vertex: number; eastPoint: number }
   cusps: number[]
@@ -94,7 +102,10 @@ export class CaelusChartMapper {
     const angles = CaelusChartMapper.mapAngles(caelusChart.angles)
     const houses = CaelusChartMapper.mapHouses(caelusChart.cusps)
     const aspects = CaelusChartMapper.mapAspects(caelusChart.aspects)
-    const additionalPoints = CaelusChartMapper.mapAdditionalPoints(caelusChart.bodies, caelusChart.lots)
+    const additionalPoints = CaelusChartMapper.mapAdditionalPoints(
+      caelusChart.bodies,
+      caelusChart.lots,
+    )
 
     return NatalChart.from({
       birthDataId,
@@ -109,10 +120,13 @@ export class CaelusChartMapper {
     })
   }
 
-  private static mapPlanets(bodies: Record<string, CaelusChartBody>): PlanetPositionType[] {
+  private static mapPlanets(
+    bodies: Record<string, CaelusChartBody | undefined>,
+  ): PlanetPositionType[] {
     const result: PlanetPositionType[] = []
 
     for (const [key, body] of Object.entries(bodies)) {
+      if (!body) continue
       if (key === 'mean_node' || key === 'true_node') continue
 
       const planet = PLANET_MAP[key]
@@ -165,11 +179,21 @@ export class CaelusChartMapper {
 
   private static mapAspects(caelusAspects: CaelusAspect[]): AspectVo[] {
     return caelusAspects
-      .filter(a => {
-        if (a.a === 'mean_node' || a.a === 'true_node' || a.b === 'mean_node' || a.b === 'true_node') return false
-        return PLANET_MAP[a.a] !== undefined && PLANET_MAP[a.b] !== undefined && ASPECT_MAP[a.aspect] !== undefined
+      .filter((a) => {
+        if (
+          a.a === 'mean_node' ||
+          a.a === 'true_node' ||
+          a.b === 'mean_node' ||
+          a.b === 'true_node'
+        )
+          return false
+        return (
+          PLANET_MAP[a.a] !== undefined &&
+          PLANET_MAP[a.b] !== undefined &&
+          ASPECT_MAP[a.aspect] !== undefined
+        )
       })
-      .map(a => {
+      .map((a) => {
         return Aspect.from({
           planetA: PLANET_MAP[a.a]!,
           planetB: PLANET_MAP[a.b]!,
@@ -181,7 +205,7 @@ export class CaelusChartMapper {
   }
 
   private static mapAdditionalPoints(
-    bodies: Record<string, CaelusChartBody>,
+    bodies: Record<string, CaelusChartBody | undefined>,
     lots?: CaelusLot[],
   ): AdditionalPointVo[] {
     const points: AdditionalPointVo[] = []
@@ -219,7 +243,9 @@ export class CaelusChartMapper {
     }
 
     // Map SOUTH_NODE = NORTH_NODE + 180°
-    const northNode = points.find((p) => p.point === AdditionalPointType.NORTH_NODE)
+    const northNode = points.find(
+      (p) => p.point === AdditionalPointType.NORTH_NODE,
+    )
     if (northNode) {
       const southLon = this.signToLon(northNode.sign) + northNode.degree + 180
       points.push(

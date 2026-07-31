@@ -21,8 +21,7 @@ export type UpdateBirthDataInput = {
 }
 
 export type UpdateBirthDataOutput =
-  | { ok: true; data: BirthData; warning?: string }
-  | { ok: false; error: string }
+  { ok: true; data: BirthData; warning?: string } | { ok: false; error: string }
 
 export class UpdateBirthDataUseCase {
   constructor(

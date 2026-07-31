@@ -10,40 +10,40 @@
 
 ### Core
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Framework | Astro 7 (SSR, `output: 'server'`) | Static + server-rendered pages |
-| Adapter | `@astrojs/node` (standalone) | Node.js server deployment |
-| CSS | Tailwind CSS v4 (`@tailwindcss/vite`) | Utility-first styling |
-| Client interactivity | Alpine.js v3 (`@astrojs/alpinejs`) | Lightweight reactive UI |
-| Dynamic loading | HTMX v2 (`htmx.org`) | Partial page updates, AJAX |
+| Layer                | Technology                            | Purpose                        |
+| -------------------- | ------------------------------------- | ------------------------------ |
+| Framework            | Astro 7 (SSR, `output: 'server'`)     | Static + server-rendered pages |
+| Adapter              | `@astrojs/node` (standalone)          | Node.js server deployment      |
+| CSS                  | Tailwind CSS v4 (`@tailwindcss/vite`) | Utility-first styling          |
+| Client interactivity | Alpine.js v3 (`@astrojs/alpinejs`)    | Lightweight reactive UI        |
+| Dynamic loading      | HTMX v2 (`htmx.org`)                  | Partial page updates, AJAX     |
 
 ### Data
 
-| Layer | Technology |
-|---|---|
-| Database | SQLite via `@libsql/client` (Turso) |
-| ORM | Drizzle ORM v0.45 |
-| Migrations | `drizzle-kit` |
+| Layer      | Technology                          |
+| ---------- | ----------------------------------- |
+| Database   | SQLite via `@libsql/client` (Turso) |
+| ORM        | Drizzle ORM v0.45                   |
+| Migrations | `drizzle-kit`                       |
 
 ### Auth
 
-| Layer | Technology |
-|---|---|
-| Auth server | better-auth v1.6 |
+| Layer       | Technology                                          |
+| ----------- | --------------------------------------------------- |
+| Auth server | better-auth v1.6                                    |
 | Auth client | `@/lib/auth-client.ts` (better-auth browser client) |
-| Strategies | Email + password (currently) |
+| Strategies  | Email + password (currently)                        |
 
 ### Tooling
 
-| Tool | Config |
-|---|---|
-| TypeScript | `strict` mode, `@/` → `src/` path alias |
-| Package manager | npm |
-| Dev server | `astro dev --background` |
-| Build | `astro build` |
-| DB generate | `drizzle-kit generate` |
-| DB migrate | `drizzle-kit migrate` |
+| Tool            | Config                                  |
+| --------------- | --------------------------------------- |
+| TypeScript      | `strict` mode, `@/` → `src/` path alias |
+| Package manager | npm                                     |
+| Dev server      | `astro dev --background`                |
+| Build           | `astro build`                           |
+| DB generate     | `drizzle-kit generate`                  |
+| DB migrate      | `drizzle-kit migrate`                   |
 
 ---
 
@@ -140,7 +140,7 @@ Content template:
 Optional sections: Status, Considered Options, Consequences.
 ```
 
-An ADR can be a single paragraph. The value is recording *that* a decision was made and *why*.
+An ADR can be a single paragraph. The value is recording _that_ a decision was made and _why_.
 
 ---
 
@@ -195,16 +195,16 @@ src/
 
 Use these terms precisely:
 
-| Term | Meaning | Avoid |
-|---|---|---|
-| **Module** | Anything with an interface + implementation (function, class, file, directory) | Component, service, unit |
-| **Interface** | Everything a caller must know: type signature + invariants + ordering + errors + config | API, signature |
-| **Implementation** | What's inside the module | — |
-| **Depth** | Behaviour per unit of interface — deep = lots of behaviour behind a small interface | — |
-| **Seam** | Where you can alter behaviour without editing that place | Boundary |
-| **Adapter** | Concrete thing that satisfies an interface at a seam | — |
-| **Leverage** | What callers get from depth (more capability per interface learned) | — |
-| **Locality** | What maintainers get from depth (change concentrates in one place) | — |
+| Term               | Meaning                                                                                 | Avoid                    |
+| ------------------ | --------------------------------------------------------------------------------------- | ------------------------ |
+| **Module**         | Anything with an interface + implementation (function, class, file, directory)          | Component, service, unit |
+| **Interface**      | Everything a caller must know: type signature + invariants + ordering + errors + config | API, signature           |
+| **Implementation** | What's inside the module                                                                | —                        |
+| **Depth**          | Behaviour per unit of interface — deep = lots of behaviour behind a small interface     | —                        |
+| **Seam**           | Where you can alter behaviour without editing that place                                | Boundary                 |
+| **Adapter**        | Concrete thing that satisfies an interface at a seam                                    | —                        |
+| **Leverage**       | What callers get from depth (more capability per interface learned)                     | —                        |
+| **Locality**       | What maintainers get from depth (change concentrates in one place)                      | —                        |
 
 #### Guidelines
 
@@ -320,31 +320,31 @@ Use `registerComponent()` from `@/lib/alpine-utils` — wraps `alpine:init` + `A
 
 ```astro
 <script>
-import { authClient } from '@/lib/auth-client'
-import { registerComponent } from '@/lib/alpine-utils'
+  import { authClient } from '@/lib/auth-client'
+  import { registerComponent } from '@/lib/alpine-utils'
 
-registerComponent('myComponent', () => ({
-  // Reactive state
-  field: '',
-  loading: false,
-  error: '',
+  registerComponent('myComponent', () => ({
+    // Reactive state
+    field: '',
+    loading: false,
+    error: '',
 
-  // Actions
-  async doSomething() {
-    this.loading = true
-    this.error = ''
-    try {
-      // ...
-    } catch {
-      this.setError('Error message')
-    }
-  },
+    // Actions
+    async doSomething() {
+      this.loading = true
+      this.error = ''
+      try {
+        // ...
+      } catch {
+        this.setError('Error message')
+      }
+    },
 
-  setError(msg) {
-    this.error = msg
-    this.loading = false
-  },
-}))
+    setError(msg) {
+      this.error = msg
+      this.loading = false
+    },
+  }))
 </script>
 ```
 
@@ -357,15 +357,15 @@ registerComponent('myComponent', () => ({
 
 ### Directives Reference
 
-| Directive | When | Example |
-|---|---|---|
-| `x-data` | Root element of Alpine scope | `<form x-data="signinForm">` |
-| `x-model` | Two-way binding on inputs | `<input x-model="email">` |
-| `x-show` | Conditional display (falsy = hidden) | `<p x-show="error">` |
-| `x-text` | Dynamic text content | `<span x-text="buttonText">` |
-| `@submit.prevent` | Form submit with preventDefault | `<form @submit.prevent="submit">` |
-| `@click` | Click handler | `<button @click="logout">` |
-| `:disabled` | Conditional disabled attribute | `<button :disabled="loading">` |
+| Directive         | When                                 | Example                           |
+| ----------------- | ------------------------------------ | --------------------------------- |
+| `x-data`          | Root element of Alpine scope         | `<form x-data="signinForm">`      |
+| `x-model`         | Two-way binding on inputs            | `<input x-model="email">`         |
+| `x-show`          | Conditional display (falsy = hidden) | `<p x-show="error">`              |
+| `x-text`          | Dynamic text content                 | `<span x-text="buttonText">`      |
+| `@submit.prevent` | Form submit with preventDefault      | `<form @submit.prevent="submit">` |
+| `@click`          | Click handler                        | `<button @click="logout">`        |
+| `:disabled`       | Conditional disabled attribute       | `<button :disabled="loading">`    |
 
 ### State Shape Convention
 
@@ -453,10 +453,10 @@ window.location.href = '/'
 
 ### Session Data Available
 
-| Property | Type | Source |
-|---|---|---|
-| `Astro.locals.user` | `User | null` | From better-auth session |
-| `Astro.locals.session` | `Session | null` | From better-auth session |
+| Property               | Type     | Source |
+| ---------------------- | -------- | ------ |
+| `Astro.locals.user`    | `User    | null`  | From better-auth session |
+| `Astro.locals.session` | `Session | null`  | From better-auth session |
 
 `User` fields: `id`, `name`, `email`, `emailVerified`, `image`, `createdAt`, `updatedAt`
 
@@ -495,6 +495,7 @@ setError(msg) {
 ```
 
 Rules:
+
 - **Validation errors**: early return with `setError()`, which resets `loading`
 - **API errors**: check `{ error }` destructuring, show `error.message` with fallback
 - **Network errors**: `catch` block with generic message
@@ -524,10 +525,11 @@ All styling uses Tailwind utility classes. No custom CSS unless absolutely neces
 Always provide both variants using `dark:` modifier:
 
 ```html
-<div class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+<div class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"></div>
 ```
 
 Required patterns:
+
 - Background: `bg-white dark:bg-gray-800` (cards), `bg-white dark:bg-gray-900` (page), `bg-gray-50 dark:bg-gray-950` (subtle)
 - Text: `text-gray-900 dark:text-gray-100` (headings), `text-gray-600 dark:text-gray-400` (body/muted)
 - Borders: `border-gray-200 dark:border-gray-700`
@@ -535,11 +537,11 @@ Required patterns:
 
 ### Brand Colors
 
-| Token | Light | Dark | Usage |
-|---|---|---|---|
-| Primary | `indigo-600` | `indigo-400` | Links, buttons, logo |
-| Primary hover | `indigo-700` | `indigo-300` | Button hover states |
-| Primary bg | `indigo-100` | `indigo-900` | Avatar backgrounds |
+| Token         | Light        | Dark         | Usage                |
+| ------------- | ------------ | ------------ | -------------------- |
+| Primary       | `indigo-600` | `indigo-400` | Links, buttons, logo |
+| Primary hover | `indigo-700` | `indigo-300` | Button hover states  |
+| Primary bg    | `indigo-100` | `indigo-900` | Avatar backgrounds   |
 
 ### Component Styling Guidance
 
@@ -603,15 +605,15 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Types
 
-| Type | When |
-|---|---|
-| `feat` | A new feature |
-| `fix` | A bug fix |
-| `refactor` | Code change that neither fixes nor adds |
-| `style` | Formatting, missing semicolons, etc. (no code change) |
-| `docs` | Documentation only |
-| `chore` | Build, deps, config, tooling |
-| `perf` | Performance improvement |
+| Type       | When                                                  |
+| ---------- | ----------------------------------------------------- |
+| `feat`     | A new feature                                         |
+| `fix`      | A bug fix                                             |
+| `refactor` | Code change that neither fixes nor adds               |
+| `style`    | Formatting, missing semicolons, etc. (no code change) |
+| `docs`     | Documentation only                                    |
+| `chore`    | Build, deps, config, tooling                          |
+| `perf`     | Performance improvement                               |
 
 ### Scope
 
@@ -630,22 +632,22 @@ chore(deps): update alpinejs to 3.14
 
 ## Code Smell Baseline
 
-In addition to the standards above, all code should avoid the Fowler code smells (from *Refactoring* ch.3). These are labelled heuristics, not hard rules — but they serve as the default review baseline when no documented standard addresses a concern.
+In addition to the standards above, all code should avoid the Fowler code smells (from _Refactoring_ ch.3). These are labelled heuristics, not hard rules — but they serve as the default review baseline when no documented standard addresses a concern.
 
-| Smell | What to look for | How to fix |
-|---|---|---|
-| **Mysterious Name** | A function/variable/type whose name doesn't reveal what it does | Rename it; if no honest name comes, the design is murky |
-| **Duplicated Code** | Same logic shape in more than one hunk/file | Extract the shared shape, call it from both |
-| **Feature Envy** | A method reaching into another object's data more than its own | Move the method onto the data it envies |
-| **Data Clumps** | Same fields/params travelling together (wanting a type) | Bundle them into one type |
-| **Primitive Obsession** | A primitive standing in for a domain concept | Give the concept its own small type |
-| **Repeated Switches** | Same switch/if-cascade on same type recurring | Replace with polymorphism or a shared map |
-| **Shotgun Surgery** | One logical change forces scattered edits across many files | Gather what changes together into one module |
-| **Divergent Change** | One module edited for several unrelated reasons | Split so each module changes for one reason |
-| **Speculative Generality** | Abstraction/params/hooks for needs the spec doesn't have | Delete it; inline until a real need shows |
-| **Message Chains** | Long `a.b().c().d()` navigation the caller shouldn't depend on | Hide the walk behind one method |
-| **Middle Man** | A class/function that mostly delegates onward | Cut it, call the real target directly |
-| **Refused Bequest** | A subclass that ignores most of what it inherits | Drop inheritance, use composition |
+| Smell                      | What to look for                                                | How to fix                                              |
+| -------------------------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| **Mysterious Name**        | A function/variable/type whose name doesn't reveal what it does | Rename it; if no honest name comes, the design is murky |
+| **Duplicated Code**        | Same logic shape in more than one hunk/file                     | Extract the shared shape, call it from both             |
+| **Feature Envy**           | A method reaching into another object's data more than its own  | Move the method onto the data it envies                 |
+| **Data Clumps**            | Same fields/params travelling together (wanting a type)         | Bundle them into one type                               |
+| **Primitive Obsession**    | A primitive standing in for a domain concept                    | Give the concept its own small type                     |
+| **Repeated Switches**      | Same switch/if-cascade on same type recurring                   | Replace with polymorphism or a shared map               |
+| **Shotgun Surgery**        | One logical change forces scattered edits across many files     | Gather what changes together into one module            |
+| **Divergent Change**       | One module edited for several unrelated reasons                 | Split so each module changes for one reason             |
+| **Speculative Generality** | Abstraction/params/hooks for needs the spec doesn't have        | Delete it; inline until a real need shows               |
+| **Message Chains**         | Long `a.b().c().d()` navigation the caller shouldn't depend on  | Hide the walk behind one method                         |
+| **Middle Man**             | A class/function that mostly delegates onward                   | Cut it, call the real target directly                   |
+| **Refused Bequest**        | A subclass that ignores most of what it inherits                | Drop inheritance, use composition                       |
 
 ### Repo Standards Override the Baseline
 

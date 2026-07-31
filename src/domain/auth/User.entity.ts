@@ -43,7 +43,10 @@ export class User {
    * Create a new User with sensible defaults.
    * Only id, name, and email are required; createdAt and updatedAt default to now.
    */
-  static create(props: Pick<UserProps, 'id' | 'name' | 'email'> & Partial<Omit<UserProps, 'id' | 'name' | 'email'>>): User {
+  static create(
+    props: Pick<UserProps, 'id' | 'name' | 'email'> &
+      Partial<Omit<UserProps, 'id' | 'name' | 'email'>>,
+  ): User {
     const now = new Date()
     return User.from({
       ...props,

@@ -15,7 +15,10 @@ import { BetterAuthRepository } from '@/infrastructure/auth/BetterAuthRepository
 export const POST: APIRoute = async ({ request }) => {
   const contentType = request.headers.get('content-type') || ''
   if (!contentType.includes('application/json')) {
-    return Response.json({ error: 'Content-Type must be application/json' }, { status: 415 })
+    return Response.json(
+      { error: 'Content-Type must be application/json' },
+      { status: 415 },
+    )
   }
 
   let body: { email?: string; password?: string }
@@ -26,7 +29,10 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const useCase = new SignInUseCase(new BetterAuthRepository())
-  const result = await useCase.execute({ email: body.email ?? '', password: body.password ?? '' })
+  const result = await useCase.execute({
+    email: body.email ?? '',
+    password: body.password ?? '',
+  })
 
   if (!result.ok) {
     // Mensaje genérico para prevenir email enumeration

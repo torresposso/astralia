@@ -24,7 +24,9 @@ describe('Password', () => {
       const result = Password.create('1234567')
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toBe('La contraseña debe tener al menos 8 caracteres')
+        expect(result.error).toBe(
+          'La contraseña debe tener al menos 8 caracteres',
+        )
       }
     })
 
@@ -32,7 +34,9 @@ describe('Password', () => {
       const result = Password.create('a'.repeat(7))
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toBe('La contraseña debe tener al menos 8 caracteres')
+        expect(result.error).toBe(
+          'La contraseña debe tener al menos 8 caracteres',
+        )
       }
     })
   })

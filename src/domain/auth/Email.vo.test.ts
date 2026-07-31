@@ -32,7 +32,9 @@ describe('Email', () => {
       const result = Email.create('userexample.com')
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toBe('El formato del correo electrónico no es válido')
+        expect(result.error).toBe(
+          'El formato del correo electrónico no es válido',
+        )
       }
     })
 
@@ -40,7 +42,9 @@ describe('Email', () => {
       const result = Email.create('user@')
       expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toBe('El formato del correo electrónico no es válido')
+        expect(result.error).toBe(
+          'El formato del correo electrónico no es válido',
+        )
       }
     })
 

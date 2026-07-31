@@ -17,7 +17,9 @@ export type AuthRequestContext = {
 export async function parseAndAuthenticateRequest(
   context: APIContext,
   options: { requireJsonBody?: boolean; requireId?: boolean } = {},
-): Promise<{ ok: true; data: AuthRequestContext } | { ok: false; response: Response }> {
+): Promise<
+  { ok: true; data: AuthRequestContext } | { ok: false; response: Response }
+> {
   const { request, params, locals } = context
   let body: Record<string, unknown> | undefined
 
@@ -38,7 +40,9 @@ export async function parseAndAuthenticateRequest(
       return {
         ok: false,
         response: new Response(
-          JSON.stringify({ error: 'El cuerpo de la solicitud no es JSON válido' }),
+          JSON.stringify({
+            error: 'El cuerpo de la solicitud no es JSON válido',
+          }),
           { status: 400, headers: { 'Content-Type': 'application/json' } },
         ),
       }
@@ -56,18 +60,17 @@ export async function parseAndAuthenticateRequest(
     }
   }
 
-  const userId =
-    locals?.session?.user?.id ??
-    request.headers.get('x-user-id') ??
-    (typeof body?.userId === 'string' ? body.userId : '')
+  // Identity comes exclusively from the authenticated session resolved by
+  // middleware. Never trust client-supplied identity (headers or body).
+  const userId = locals?.user?.id ?? ''
 
   if (!userId) {
     return {
       ok: false,
-      response: new Response(
-        JSON.stringify({ error: 'No autorizado' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
-      ),
+      response: new Response(JSON.stringify({ error: 'No autorizado' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }),
     }
   }
 

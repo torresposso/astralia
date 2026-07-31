@@ -11,6 +11,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { APIError } from 'better-auth/api'
 import { BetterAuthRepository } from './BetterAuthRepository'
 import { User } from '@/domain/auth/User.entity'
+import {
+  signInEmailResult,
+  signUpEmailResult,
+  signOutResult,
+  getSessionResult,
+} from '../../../tests/helpers/betterAuthMocks'
 
 // ---------------------------------------------------------------------------
 // Mock @/infrastructure/auth/auth.config — vi.mock is hoisted to the top by vitest
@@ -85,10 +91,12 @@ describe('BetterAuthRepository', () => {
   describe('signIn', () => {
     it('should call auth.api.signInEmail with correct arguments and return user with cookies on success', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signInEmail).mockResolvedValue({
-        response: mockSessionData,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signInEmail).mockResolvedValue(
+        signInEmailResult({
+          response: mockSessionData,
+          headers: mockCookieHeaders,
+        }),
+      )
 
       const result = await repository.signIn({
         email: 'test@test.com',
@@ -114,10 +122,12 @@ describe('BetterAuthRepository', () => {
 
     it('should map the better-auth user to domain User correctly', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signInEmail).mockResolvedValue({
-        response: mockSessionData,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signInEmail).mockResolvedValue(
+        signInEmailResult({
+          response: mockSessionData,
+          headers: mockCookieHeaders,
+        }),
+      )
 
       const result = await repository.signIn({
         email: 'test@test.com',
@@ -137,10 +147,12 @@ describe('BetterAuthRepository', () => {
 
     it('should return cookies from Set-Cookie headers', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signInEmail).mockResolvedValue({
-        response: mockSessionData,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signInEmail).mockResolvedValue(
+        signInEmailResult({
+          response: mockSessionData,
+          headers: mockCookieHeaders,
+        }),
+      )
 
       const result = await repository.signIn({
         email: 'test@test.com',
@@ -155,10 +167,9 @@ describe('BetterAuthRepository', () => {
 
     it('should return ok: false when response is null', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signInEmail).mockResolvedValue({
-        response: null,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signInEmail).mockResolvedValue(
+        signInEmailResult({ response: null, headers: mockCookieHeaders }),
+      )
 
       const result = await repository.signIn({
         email: 'test@test.com',
@@ -190,7 +201,9 @@ describe('BetterAuthRepository', () => {
 
     it('should re-throw non-APIError errors', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signInEmail).mockRejectedValue(new Error('Network error'))
+      vi.mocked(auth.api.signInEmail).mockRejectedValue(
+        new Error('Network error'),
+      )
 
       await expect(
         repository.signIn({
@@ -207,10 +220,12 @@ describe('BetterAuthRepository', () => {
   describe('signUp', () => {
     it('should call auth.api.signUpEmail with correct arguments and return user with cookies on success', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signUpEmail).mockResolvedValue({
-        response: mockSessionData,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signUpEmail).mockResolvedValue(
+        signUpEmailResult({
+          response: mockSessionData,
+          headers: mockCookieHeaders,
+        }),
+      )
 
       const result = await repository.signUp({
         name: 'Test User',
@@ -238,10 +253,12 @@ describe('BetterAuthRepository', () => {
 
     it('should map the better-auth user to domain User correctly', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signUpEmail).mockResolvedValue({
-        response: mockSessionData,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signUpEmail).mockResolvedValue(
+        signUpEmailResult({
+          response: mockSessionData,
+          headers: mockCookieHeaders,
+        }),
+      )
 
       const result = await repository.signUp({
         name: 'Test User',
@@ -262,10 +279,9 @@ describe('BetterAuthRepository', () => {
 
     it('should return ok: false when response is null', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signUpEmail).mockResolvedValue({
-        response: null,
-        headers: mockCookieHeaders,
-      })
+      vi.mocked(auth.api.signUpEmail).mockResolvedValue(
+        signUpEmailResult({ response: null, headers: mockCookieHeaders }),
+      )
 
       const result = await repository.signUp({
         name: 'Test User',
@@ -307,11 +323,13 @@ describe('BetterAuthRepository', () => {
       const signOutHeaders = new Headers({
         'set-cookie': 'better-auth.session_token=; Path=/; Max-Age=0',
       })
-      vi.mocked(auth.api.signOut).mockResolvedValue({
-        headers: signOutHeaders,
-      })
+      vi.mocked(auth.api.signOut).mockResolvedValue(
+        signOutResult({ headers: signOutHeaders }),
+      )
 
-      const inputHeaders = new Headers({ cookie: 'better-auth.session_token=abc123' })
+      const inputHeaders = new Headers({
+        cookie: 'better-auth.session_token=abc123',
+      })
       const result = await repository.signOut({ headers: inputHeaders })
 
       expect(auth.api.signOut).toHaveBeenCalledWith({
@@ -326,9 +344,9 @@ describe('BetterAuthRepository', () => {
 
     it('should use new Headers() by default when no headers are passed', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.signOut).mockResolvedValue({
-        headers: new Headers(),
-      })
+      vi.mocked(auth.api.signOut).mockResolvedValue(
+        signOutResult({ headers: new Headers() }),
+      )
 
       await repository.signOut()
 
@@ -345,9 +363,13 @@ describe('BetterAuthRepository', () => {
   describe('getSession', () => {
     it('should return a User when better-auth returns a session', async () => {
       const auth = await getMockedAuth()
-      vi.mocked(auth.api.getSession).mockResolvedValue(mockSessionData)
+      vi.mocked(auth.api.getSession).mockResolvedValue(
+        getSessionResult(mockSessionData),
+      )
 
-      const headers = new Headers({ cookie: 'better-auth.session_token=abc123' })
+      const headers = new Headers({
+        cookie: 'better-auth.session_token=abc123',
+      })
       const result = await repository.getSession(headers)
 
       expect(auth.api.getSession).toHaveBeenCalledWith({

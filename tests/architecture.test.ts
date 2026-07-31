@@ -59,7 +59,10 @@ function extractImportPaths(source: string): string[] {
 }
 
 /** Recursively walk a directory and yield all `.ts` file paths. */
-function* walkTsFiles(dir: string, excludeTestFiles = false): Generator<string> {
+function* walkTsFiles(
+  dir: string,
+  excludeTestFiles = false,
+): Generator<string> {
   if (!fs.existsSync(dir)) return
 
   const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -103,7 +106,9 @@ function checkLayerImports(
           importPath.startsWith(`@/${forbiddenItem}`)
         ) {
           const relativePath = path.relative(SRC_DIR, filePath)
-          violations.push(`  ❌ ${relativePath} imports from "${forbiddenItem}" via: ${importPath}`)
+          violations.push(
+            `  ❌ ${relativePath} imports from "${forbiddenItem}" via: ${importPath}`,
+          )
         }
       }
     }
@@ -171,7 +176,9 @@ describe('🧱 Clean Architecture layer boundaries', () => {
     )
 
     if (violations.length > 0) {
-      console.log(`\n⚠️  Infrastructure layer violations (${violations.length}):`)
+      console.log(
+        `\n⚠️  Infrastructure layer violations (${violations.length}):`,
+      )
       violations.forEach((v) => console.log(v))
     }
 

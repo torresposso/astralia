@@ -1,10 +1,11 @@
 ---
 export interface Props {
-  title?: string;
+  title?: string
 }
 
-const { title = 'Astralia' } = Astro.props;
+const { title = 'Astralia' } = Astro.props
 ---
+
 <!doctype html>
 <html lang="es">
   <head>
@@ -15,19 +16,21 @@ const { title = 'Astralia' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/src/styles/global.css" />
   </head>
-  <body class="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+  <body
+    class="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
+  >
     <!-- HTMX from npm -->
     <script>
-      import 'htmx.org';
+      import 'htmx.org'
     </script>
 
     <!-- HTMX + Alpine bridge for clean coexistence -->
     <script is:inline>
-      document.addEventListener('htmx:afterSettle', function(evt) {
+      document.addEventListener('htmx:afterSettle', function (evt) {
         if (window.Alpine) {
-          Alpine.initTree(evt.detail.target);
+          Alpine.initTree(evt.detail.target)
         }
-      });
+      })
     </script>
 
     <!-- Alpine.js is loaded automatically by @astrojs/alpinejs integration -->

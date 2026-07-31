@@ -57,11 +57,11 @@
 
 ## Bounded Contexts
 
-| Context | Status | Carpeta |
-|---------|--------|---------|
-| Auth | ✅ Implementado | `src/*/auth/` |
-| Chart | 🚧 Planeado | `src/*/chart/` |
-| Birth Data | 🚧 Planeado | `src/*/birth-data/` |
+| Context    | Status          | Carpeta             |
+| ---------- | --------------- | ------------------- |
+| Auth       | ✅ Implementado | `src/*/auth/`       |
+| Chart      | 🚧 Planeado     | `src/*/chart/`      |
+| Birth Data | 🚧 Planeado     | `src/*/birth-data/` |
 
 ## Data Flow
 
@@ -99,9 +99,9 @@ Browser (Alpine.js)               Astro SSR
 
 ## Technology Mapping
 
-| Layer | Tecnología | Propósito |
-|-------|-----------|-----------|
-| Interfaces | Astro 7 SSR, Alpine.js, Tailwind 4 | UI, routing, interactividad cliente |
-| Application | TypeScript puro | Use cases, orquestación |
-| Domain | TypeScript puro | Entidades, VOs, reglas de negocio |
-| Infrastructure | better-auth, Drizzle ORM, Turso (SQLite) | Autenticación, persistencia, DB |
+| Layer          | Tecnología                               | Propósito                           |
+| -------------- | ---------------------------------------- | ----------------------------------- |
+| Interfaces     | Astro 7 SSR, Alpine.js, Tailwind 4       | UI, routing, interactividad cliente |
+| Application    | TypeScript puro                          | Use cases, orquestación             |
+| Domain         | TypeScript puro                          | Entidades, VOs, reglas de negocio   |
+| Infrastructure | better-auth, Drizzle ORM, Turso (SQLite) | Autenticación, persistencia, DB     |

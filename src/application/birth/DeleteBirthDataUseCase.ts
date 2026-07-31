@@ -12,8 +12,7 @@ export type DeleteBirthDataInput = {
 }
 
 export type DeleteBirthDataOutput =
-  | { ok: true; message: string }
-  | { ok: false; error: string }
+  { ok: true; message: string } | { ok: false; error: string }
 
 export class DeleteBirthDataUseCase {
   constructor(private readonly repository: IBirthDataRepository) {}

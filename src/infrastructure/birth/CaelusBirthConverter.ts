@@ -8,7 +8,10 @@
 
 import { toUT } from 'caelus-birth'
 import type { BirthData } from '@/domain/birth/BirthData.vo'
-import type { IBirthToUTConverter, UTConversionResult } from '@/domain/birth/ports/IBirthToUTConverter'
+import type {
+  IBirthToUTConverter,
+  UTConversionResult,
+} from '@/domain/birth/ports/IBirthToUTConverter'
 
 export class CaelusBirthConverter implements IBirthToUTConverter {
   convert(birthData: BirthData): UTConversionResult {
@@ -43,7 +46,10 @@ export class CaelusBirthConverter implements IBirthToUTConverter {
         },
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al convertir hora local a UT'
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Error al convertir hora local a UT'
       return { ok: false, error: message }
     }
   }

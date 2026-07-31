@@ -4,7 +4,10 @@
  * Infrastructure implementation of IGeocodingService using Open-Meteo REST API.
  */
 
-import type { IGeocodingService, GeocodingResult } from '@/domain/birth/services/IGeocodingService'
+import type {
+  IGeocodingService,
+  GeocodingResult,
+} from '@/domain/birth/services/IGeocodingService'
 
 interface OpenMeteoResult {
   name: string

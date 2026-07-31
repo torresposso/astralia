@@ -6,7 +6,11 @@ describe('User', () => {
 
   describe('create', () => {
     it('should create a User with only id, name, and email, using defaults for other fields', () => {
-      const user = User.create({ id: '1', name: 'Test User', email: 'test@example.com' })
+      const user = User.create({
+        id: '1',
+        name: 'Test User',
+        email: 'test@example.com',
+      })
 
       expect(user).toBeInstanceOf(User)
       expect(user.id).toBe('1')
@@ -60,7 +64,11 @@ describe('User', () => {
 
   describe('getInitial', () => {
     it('should return the first letter of the name in uppercase', () => {
-      const user = User.create({ id: '1', name: 'ana', email: 'ana@example.com' })
+      const user = User.create({
+        id: '1',
+        name: 'ana',
+        email: 'ana@example.com',
+      })
       expect(user.getInitial()).toBe('A')
     })
 
@@ -77,27 +85,59 @@ describe('User', () => {
 
   describe('canSignIn', () => {
     it('should return true', () => {
-      const user = User.create({ id: '1', name: 'Test', email: 'test@example.com' })
+      const user = User.create({
+        id: '1',
+        name: 'Test',
+        email: 'test@example.com',
+      })
       expect(user.canSignIn()).toBe(true)
     })
   })
 
   describe('equals', () => {
     it('should return true when two Users have the same id', () => {
-      const user1 = User.create({ id: '1', name: 'Alice', email: 'alice@example.com' })
-      const user2 = User.create({ id: '1', name: 'Alice', email: 'alice@example.com' })
+      const user1 = User.create({
+        id: '1',
+        name: 'Alice',
+        email: 'alice@example.com',
+      })
+      const user2 = User.create({
+        id: '1',
+        name: 'Alice',
+        email: 'alice@example.com',
+      })
       expect(user1.equals(user2)).toBe(true)
     })
 
     it('should return true when two Users have the same id but different attributes', () => {
-      const user1 = User.create({ id: '1', name: 'Alice', email: 'alice@example.com' })
-      const user2 = User.from({ id: '1', name: 'Different', email: 'other@example.com', emailVerified: true, image: null, createdAt: new Date(0), updatedAt: new Date(0) })
+      const user1 = User.create({
+        id: '1',
+        name: 'Alice',
+        email: 'alice@example.com',
+      })
+      const user2 = User.from({
+        id: '1',
+        name: 'Different',
+        email: 'other@example.com',
+        emailVerified: true,
+        image: null,
+        createdAt: new Date(0),
+        updatedAt: new Date(0),
+      })
       expect(user1.equals(user2)).toBe(true)
     })
 
     it('should return false when two Users have different ids', () => {
-      const user1 = User.create({ id: '1', name: 'Alice', email: 'alice@example.com' })
-      const user2 = User.create({ id: '2', name: 'Bob', email: 'bob@example.com' })
+      const user1 = User.create({
+        id: '1',
+        name: 'Alice',
+        email: 'alice@example.com',
+      })
+      const user2 = User.create({
+        id: '2',
+        name: 'Bob',
+        email: 'bob@example.com',
+      })
       expect(user1.equals(user2)).toBe(false)
     })
   })
@@ -126,7 +166,11 @@ describe('User', () => {
     })
 
     it('should include null image when not provided', () => {
-      const user = User.create({ id: '1', name: 'Test', email: 'test@example.com' })
+      const user = User.create({
+        id: '1',
+        name: 'Test',
+        email: 'test@example.com',
+      })
       const json = user.toJSON()
       expect(json.image).toBeNull()
     })

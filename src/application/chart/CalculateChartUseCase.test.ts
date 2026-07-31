@@ -25,7 +25,10 @@ describe('CalculateChartUseCase', () => {
       id,
       userId: overrides.userId ?? 'user_123',
       date: { year: 1990, month: 6, day: 10 },
-      time: overrides.time !== undefined ? overrides.time : { hour: 10, minute: 30 },
+      time:
+        overrides.time !== undefined
+          ? overrides.time
+          : { hour: 10, minute: 30 },
       timeUnknown: overrides.timeUnknown ?? false,
       latitude: 10.39,
       longitude: -75.5,
@@ -72,7 +75,7 @@ describe('CalculateChartUseCase', () => {
       expect(result.ok).toBe(false)
       if (!result.ok) {
         expect(result.error).toContain('no encontrados')
-        expect((result as any).status).toBe(404)
+        expect(result.status).toBe(404)
       }
     })
 
@@ -92,7 +95,7 @@ describe('CalculateChartUseCase', () => {
       expect(result.ok).toBe(false)
       if (!result.ok) {
         expect(result.error).toContain('No autorizado')
-        expect((result as any).status).toBe(401)
+        expect(result.status).toBe(401)
       }
     })
 

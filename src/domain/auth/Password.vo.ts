@@ -23,7 +23,9 @@ export class Password {
    * Creates a Password after validating strength requirements.
    * Returns error message if too short, or the Password value object.
    */
-  static create(value: string): { ok: true; value: Password } | { ok: false; error: string } {
+  static create(
+    value: string,
+  ): { ok: true; value: Password } | { ok: false; error: string } {
     if (!value) {
       return { ok: false, error: 'La contraseña es requerida' }
     }

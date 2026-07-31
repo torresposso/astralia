@@ -14,20 +14,36 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
 
+// Shape of a stored birth-data row, as returned by the mocked Drizzle layer.
+interface BirthDataRow {
+  id: string
+  userId: string
+  birthYear: number
+  birthMonth: number
+  birthDay: number
+  birthHour: number | null
+  birthMinute: number | null
+  timeUnknown: boolean
+  latitude: number
+  longitude: number
+  timezone: string
+  placeName: string
+}
+
 // In-memory mock DB state to simulate real Drizzle persistence layer
-const dbStore: any[] = []
+const dbStore: BirthDataRow[] = []
 
 vi.mock('@/infrastructure/db', () => ({
   db: {
     insert: vi.fn().mockImplementation(() => ({
-      values: vi.fn().mockImplementation(async (row: any) => {
+      values: vi.fn().mockImplementation(async (row: BirthDataRow) => {
         dbStore.push({ ...row })
         return undefined
       }),
     })),
     select: vi.fn().mockImplementation(() => ({
       from: vi.fn().mockImplementation(() => ({
-        where: vi.fn().mockImplementation((condition: any) => ({
+        where: vi.fn().mockImplementation(() => ({
           limit: vi.fn().mockImplementation(async () => {
             return dbStore.map((row) => ({ ...row }))
           }),
@@ -35,7 +51,7 @@ vi.mock('@/infrastructure/db', () => ({
       })),
     })),
     update: vi.fn().mockImplementation(() => ({
-      set: vi.fn().mockImplementation((updates: any) => ({
+      set: vi.fn().mockImplementation((updates: Partial<BirthDataRow>) => ({
         where: vi.fn().mockImplementation(async () => {
           if (dbStore.length > 0) {
             Object.assign(dbStore[0], updates)
@@ -59,6 +75,24 @@ vi.mock('@/infrastructure/db', () => ({
 import * as createEndpoint from '@/pages/api/birth-data/create'
 import * as idEndpoint from '@/pages/api/birth-data/[id]'
 
+// Authenticated locals for AstroContainer — identity is resolved by middleware
+// from the better-auth session cookie and surfaced through locals.user.
+function authedLocals(userId: string): App.Locals {
+  return {
+    user: {
+      id: userId,
+      name: 'Test User',
+      email: `${userId}@test.local`,
+      emailVerified: true,
+    },
+    session: {
+      id: `session_${userId}`,
+      userId,
+      token: 'test-token',
+    },
+  } as unknown as App.Locals
+}
+
 describe('Birth Data End-to-End Pipeline Integration', () => {
   let container: AstroContainer
   const userId = 'usr_integration_123'
@@ -75,11 +109,11 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
   it('1. Create Flow: POST /api/birth-data creates a record in DB and returns 200', async () => {
     const response = await container.renderToResponse(createEndpoint, {
       routeType: 'endpoint',
+      locals: authedLocals(userId),
       request: new Request('http://localhost/api/birth-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
           date: { year: 1990, month: 6, day: 10 },
           time: { hour: 10, minute: 30 },
           timeUnknown: false,
@@ -124,9 +158,9 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     const response = await container.renderToResponse(idEndpoint, {
       routeType: 'endpoint',
       params: { id: 'bd_test_id' },
+      locals: authedLocals(userId),
       request: new Request('http://localhost/api/birth-data/bd_test_id', {
         method: 'GET',
-        headers: { 'x-user-id': userId },
       }),
     })
 
@@ -157,11 +191,11 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     const response = await container.renderToResponse(idEndpoint, {
       routeType: 'endpoint',
       params: { id: 'bd_test_id' },
+      locals: authedLocals(userId),
       request: new Request('http://localhost/api/birth-data/bd_test_id', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
           date: { year: 1995, month: 12, day: 25 },
           time: { hour: 8, minute: 15 },
           timeUnknown: false,
@@ -202,9 +236,9 @@ describe('Birth Data End-to-End Pipeline Integration', () => {
     const deleteResponse = await container.renderToResponse(idEndpoint, {
       routeType: 'endpoint',
       params: { id: 'bd_test_id' },
+      locals: authedLocals(userId),
       request: new Request('http://localhost/api/birth-data/bd_test_id', {
         method: 'DELETE',
-        headers: { 'x-user-id': userId },
       }),
     })
 

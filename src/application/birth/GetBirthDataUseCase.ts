@@ -13,8 +13,7 @@ export type GetBirthDataInput = {
 }
 
 export type GetBirthDataOutput =
-  | { ok: true; data: BirthData }
-  | { ok: false; error: string }
+  { ok: true; data: BirthData } | { ok: false; error: string }
 
 export class GetBirthDataUseCase {
   constructor(private readonly repository: IBirthDataRepository) {}
@@ -41,4 +40,3 @@ export class GetBirthDataUseCase {
     return { ok: true, data: birthData }
   }
 }
-

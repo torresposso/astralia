@@ -13,7 +13,10 @@ if (session) return Astro.redirect('/dashboard')
     <form x-data="signinForm" @submit.prevent="submit" class="space-y-5">
       <!-- Email -->
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label
+          for="email"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
           Correo electrónico
         </label>
         <input
@@ -29,7 +32,10 @@ if (session) return Astro.redirect('/dashboard')
 
       <!-- Password -->
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label
+          for="password"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
           Contraseña
         </label>
         <input
@@ -48,7 +54,10 @@ if (session) return Astro.redirect('/dashboard')
     </form>
 
     <p class="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-      ¿No tienes cuenta? <a href="/signup" class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
+      ¿No tienes cuenta? <a
+        href="/signup"
+        class="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
+      >
         Crear cuenta
       </a>
     </p>
@@ -56,39 +65,44 @@ if (session) return Astro.redirect('/dashboard')
 </Base>
 
 <script>
-import { registerComponent } from '@/lib/alpine-utils'
+  import { registerComponent } from '@/lib/alpine-utils'
 
-registerComponent('signinForm', () => ({
-  email: '',
-  password: '',
-  error: '',
-  loading: false,
+  registerComponent('signinForm', () => ({
+    email: '',
+    password: '',
+    error: '',
+    loading: false,
 
-  async submit() {
-    this.loading = true
-    this.error = ''
+    async submit() {
+      this.loading = true
+      this.error = ''
 
-    if (!this.email.trim()) return this.setError('Ingresa tu correo electrónico')
-    if (!this.password) return this.setError('Ingresa tu contraseña')
+      if (!this.email.trim())
+        return this.setError('Ingresa tu correo electrónico')
+      if (!this.password) return this.setError('Ingresa tu contraseña')
 
-    try {
-      const res = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: this.email.trim(), password: this.password }),
-      })
-      const data = await res.json()
-      if (!res.ok) return this.setError(data.error || 'Error al iniciar sesión')
+      try {
+        const res = await fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: this.email.trim(),
+            password: this.password,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok)
+          return this.setError(data.error || 'Error al iniciar sesión')
 
-      if (data.redirectTo) window.location.href = data.redirectTo
-    } catch {
-      this.setError('Error de conexión. Intenta de nuevo.')
-    }
-  },
+        if (data.redirectTo) window.location.href = data.redirectTo
+      } catch {
+        this.setError('Error de conexión. Intenta de nuevo.')
+      }
+    },
 
-  setError(msg) {
-    this.error = msg
-    this.loading = false
-  },
-}))
+    setError(msg: string) {
+      this.error = msg
+      this.loading = false
+    },
+  }))
 </script>

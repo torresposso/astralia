@@ -24,8 +24,7 @@ export interface UTConversionData {
 }
 
 export type UTConversionResult =
-  | { ok: true; data: UTConversionData }
-  | { ok: false; error: string }
+  { ok: true; data: UTConversionData } | { ok: false; error: string }
 
 export interface IBirthToUTConverter {
   /**

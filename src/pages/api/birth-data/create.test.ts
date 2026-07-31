@@ -28,6 +28,24 @@ vi.mock('@/infrastructure/db', () => ({
 
 import * as createEndpoint from './create'
 
+// Authenticated locals for AstroContainer — identity is resolved by middleware
+// from the better-auth session cookie and surfaced through locals.user.
+function authedLocals(userId: string): App.Locals {
+  return {
+    user: {
+      id: userId,
+      name: 'Test User',
+      email: `${userId}@test.local`,
+      emailVerified: true,
+    },
+    session: {
+      id: `session_${userId}`,
+      userId,
+      token: 'test-token',
+    },
+  } as unknown as App.Locals
+}
+
 describe('POST /api/birth-data — controller input validation', () => {
   let container: AstroContainer
 
@@ -35,14 +53,37 @@ describe('POST /api/birth-data — controller input validation', () => {
     container = await AstroContainer.create()
   })
 
-  it('should return 200 with birth data on valid input', async () => {
+  it('should return 401 when there is no authenticated session', async () => {
     const response = await container.renderToResponse(createEndpoint, {
       routeType: 'endpoint',
       request: new Request('http://localhost/api/birth-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'user_123',
+          date: { year: 1990, month: 6, day: 10 },
+          time: { hour: 10, minute: 30 },
+          timeUnknown: false,
+          latitude: 10.39,
+          longitude: -75.5,
+          timezone: 'America/Bogota',
+          placeName: 'Cartagena, Bolívar, Colombia',
+        }),
+      }),
+    })
+
+    expect(response.status).toBe(401)
+    const data = await response.json()
+    expect(data).toEqual({ error: 'No autorizado' })
+  })
+
+  it('should return 200 with birth data on valid input', async () => {
+    const response = await container.renderToResponse(createEndpoint, {
+      routeType: 'endpoint',
+      locals: authedLocals('user_123'),
+      request: new Request('http://localhost/api/birth-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           date: { year: 1990, month: 6, day: 10 },
           time: { hour: 10, minute: 30 },
           timeUnknown: false,
@@ -89,17 +130,19 @@ describe('POST /api/birth-data — controller input validation', () => {
 
     expect(response.status).toBe(400)
     const data = await response.json()
-    expect(data).toEqual({ error: 'El cuerpo de la solicitud no es JSON válido' })
+    expect(data).toEqual({
+      error: 'El cuerpo de la solicitud no es JSON válido',
+    })
   })
 
   it('should return 400 when required fields are missing', async () => {
     const response = await container.renderToResponse(createEndpoint, {
       routeType: 'endpoint',
+      locals: authedLocals('usr_1'),
       request: new Request('http://localhost/api/birth-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': 'usr_1',
         },
         body: JSON.stringify({}),
       }),
@@ -113,11 +156,11 @@ describe('POST /api/birth-data — controller input validation', () => {
   it('should return 400 when date is before 1800', async () => {
     const response = await container.renderToResponse(createEndpoint, {
       routeType: 'endpoint',
+      locals: authedLocals('user_123'),
       request: new Request('http://localhost/api/birth-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'user_123',
           date: { year: 1700, month: 1, day: 1 },
           latitude: 10.39,
           longitude: -75.5,
@@ -135,11 +178,11 @@ describe('POST /api/birth-data — controller input validation', () => {
   it('should return 200 with warning when time is not provided', async () => {
     const response = await container.renderToResponse(createEndpoint, {
       routeType: 'endpoint',
+      locals: authedLocals('user_123'),
       request: new Request('http://localhost/api/birth-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: 'user_123',
           date: { year: 1990, month: 6, day: 10 },
           time: null,
           timeUnknown: true,

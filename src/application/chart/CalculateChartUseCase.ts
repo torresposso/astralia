@@ -34,7 +34,11 @@ export class CalculateChartUseCase {
     // 1. Get the birth data
     const birthData = await this.repository.findById(input.birthDataId)
     if (!birthData) {
-      return { ok: false, error: 'Datos de nacimiento no encontrados', status: 404 }
+      return {
+        ok: false,
+        error: 'Datos de nacimiento no encontrados',
+        status: 404,
+      }
     }
 
     // 2. Verify ownership

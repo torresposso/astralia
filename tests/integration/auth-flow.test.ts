@@ -15,6 +15,11 @@
 
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { experimental_AstroContainer as AstroContainer } from 'astro/container'
+import {
+  signInEmailResult,
+  signUpEmailResult,
+  signOutResult,
+} from '../helpers/betterAuthMocks'
 
 // Mock better-auth at module level for all integration tests
 vi.mock('@/infrastructure/auth/auth.config', () => ({
@@ -42,28 +47,33 @@ describe('Auth Flow Integration', () => {
   describe('Sign Up → redirect to dashboard', () => {
     it('should return redirectTo on successful signup', async () => {
       const { auth } = await import('@/infrastructure/auth/auth.config')
-      vi.mocked(auth.api.signUpEmail).mockResolvedValue({
-        response: {
-          user: {
-            id: 'new-user-1',
-            name: 'New User',
-            email: 'new@test.com',
-            emailVerified: true,
-            image: null,
+      vi.mocked(auth.api.signUpEmail).mockResolvedValue(
+        signUpEmailResult({
+          response: {
+            user: {
+              id: 'new-user-1',
+              name: 'New User',
+              email: 'new@test.com',
+              emailVerified: true,
+              image: null,
+            },
+            session: {
+              id: 'session-new-1',
+              userId: 'new-user-1',
+              expiresAt: new Date('2025-01-01'),
+              createdAt: new Date('2024-01-01'),
+              updatedAt: new Date('2024-01-01'),
+              token: 'token-new',
+              ipAddress: null,
+              userAgent: null,
+            },
           },
-          session: {
-            id: 'session-new-1',
-            userId: 'new-user-1',
-            expiresAt: new Date('2025-01-01'),
-            createdAt: new Date('2024-01-01'),
-            updatedAt: new Date('2024-01-01'),
-            token: 'token-new',
-            ipAddress: null,
-            userAgent: null,
-          },
-        },
-        headers: new Headers({ 'set-cookie': 'better-auth.session_token=new-session-token; Path=/; HttpOnly' }),
-      })
+          headers: new Headers({
+            'set-cookie':
+              'better-auth.session_token=new-session-token; Path=/; HttpOnly',
+          }),
+        }),
+      )
 
       const response = await container.renderToResponse(signupEndpoint, {
         routeType: 'endpoint',
@@ -82,35 +92,42 @@ describe('Auth Flow Integration', () => {
       expect(response.status).toBe(200)
       const data = await response.json()
       expect(data.redirectTo).toBe('/dashboard')
-      expect(response.headers.getSetCookie()).toContain('better-auth.session_token=new-session-token; Path=/; HttpOnly')
+      expect(response.headers.getSetCookie()).toContain(
+        'better-auth.session_token=new-session-token; Path=/; HttpOnly',
+      )
     })
   })
 
   describe('Sign In → redirect to dashboard', () => {
     it('should return redirectTo + Set-Cookie on successful signin', async () => {
       const { auth } = await import('@/infrastructure/auth/auth.config')
-      vi.mocked(auth.api.signInEmail).mockResolvedValue({
-        response: {
-          user: {
-            id: 'existing-user-1',
-            name: 'Existing User',
-            email: 'existing@test.com',
-            emailVerified: true,
-            image: null,
+      vi.mocked(auth.api.signInEmail).mockResolvedValue(
+        signInEmailResult({
+          response: {
+            user: {
+              id: 'existing-user-1',
+              name: 'Existing User',
+              email: 'existing@test.com',
+              emailVerified: true,
+              image: null,
+            },
+            session: {
+              id: 'session-existing-1',
+              userId: 'existing-user-1',
+              expiresAt: new Date('2025-01-01'),
+              createdAt: new Date('2024-01-01'),
+              updatedAt: new Date('2024-01-01'),
+              token: 'token-existing',
+              ipAddress: null,
+              userAgent: null,
+            },
           },
-          session: {
-            id: 'session-existing-1',
-            userId: 'existing-user-1',
-            expiresAt: new Date('2025-01-01'),
-            createdAt: new Date('2024-01-01'),
-            updatedAt: new Date('2024-01-01'),
-            token: 'token-existing',
-            ipAddress: null,
-            userAgent: null,
-          },
-        },
-        headers: new Headers({ 'set-cookie': 'better-auth.session_token=existing-session-token; Path=/; HttpOnly' }),
-      })
+          headers: new Headers({
+            'set-cookie':
+              'better-auth.session_token=existing-session-token; Path=/; HttpOnly',
+          }),
+        }),
+      )
 
       const response = await container.renderToResponse(signinEndpoint, {
         routeType: 'endpoint',
@@ -127,13 +144,17 @@ describe('Auth Flow Integration', () => {
       expect(response.status).toBe(200)
       const data = await response.json()
       expect(data.redirectTo).toBe('/dashboard')
-      expect(response.headers.getSetCookie()).toContain('better-auth.session_token=existing-session-token; Path=/; HttpOnly')
+      expect(response.headers.getSetCookie()).toContain(
+        'better-auth.session_token=existing-session-token; Path=/; HttpOnly',
+      )
     })
 
     it('should return generic error on invalid credentials (prevent email enumeration)', async () => {
       const { auth } = await import('@/infrastructure/auth/auth.config')
       vi.mocked(auth.api.signInEmail).mockRejectedValue(
-        new (await import('better-auth/api')).APIError('BAD_REQUEST', { message: 'Invalid email or password' })
+        new (await import('better-auth/api')).APIError('BAD_REQUEST', {
+          message: 'Invalid email or password',
+        }),
       )
 
       const response = await container.renderToResponse(signinEndpoint, {
@@ -157,9 +178,13 @@ describe('Auth Flow Integration', () => {
   describe('Sign Out → redirect to home', () => {
     it('should return redirectTo: "/" on successful signout', async () => {
       const { auth } = await import('@/infrastructure/auth/auth.config')
-      vi.mocked(auth.api.signOut).mockResolvedValue({
-        headers: new Headers({ 'set-cookie': 'better-auth.session_token=; Path=/; Max-Age=0' }),
-      })
+      vi.mocked(auth.api.signOut).mockResolvedValue(
+        signOutResult({
+          headers: new Headers({
+            'set-cookie': 'better-auth.session_token=; Path=/; Max-Age=0',
+          }),
+        }),
+      )
 
       const response = await container.renderToResponse(signoutEndpoint, {
         routeType: 'endpoint',
@@ -177,7 +202,7 @@ describe('Auth Flow Integration', () => {
       expect(data.redirectTo).toBe('/')
       // Verify session cookie is cleared
       const setCookie = response.headers.getSetCookie()
-      expect(setCookie.some(c => c.includes('Max-Age=0'))).toBe(true)
+      expect(setCookie.some((c) => c.includes('Max-Age=0'))).toBe(true)
     })
   })
 })

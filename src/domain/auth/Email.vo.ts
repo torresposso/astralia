@@ -21,7 +21,9 @@ export class Email {
    * Returns the error message if invalid, or the Email value object if valid.
    * Using the "return error" pattern instead of throwing — more composable.
    */
-  static create(value: string): { ok: true; value: Email } | { ok: false; error: string } {
+  static create(
+    value: string,
+  ): { ok: true; value: Email } | { ok: false; error: string } {
     const trimmed = value.trim().toLowerCase()
 
     if (!trimmed) {
@@ -31,7 +33,10 @@ export class Email {
     // Basic email regex — validates structure, not existence
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(trimmed)) {
-      return { ok: false, error: 'El formato del correo electrónico no es válido' }
+      return {
+        ok: false,
+        error: 'El formato del correo electrónico no es válido',
+      }
     }
 
     if (trimmed.length > 254) {

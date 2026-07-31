@@ -4,11 +4,11 @@
  * Tests for the concrete IBirthDataRepository implementation using Drizzle.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DrizzleBirthDataRepository } from "./DrizzleBirthDataRepository";
-import { BirthData } from "@/domain/birth/BirthData.vo";
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { DrizzleBirthDataRepository } from './DrizzleBirthDataRepository'
+import { BirthData } from '@/domain/birth/BirthData.vo'
 
-vi.mock("@/infrastructure/db", () => ({
+vi.mock('@/infrastructure/db', () => ({
   db: {
     insert: vi.fn().mockReturnValue({
       values: vi.fn().mockResolvedValue(undefined),
@@ -17,210 +17,239 @@ vi.mock("@/infrastructure/db", () => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
-}));
+}))
 
 async function getMockedDb() {
-  const { db } = await import("@/infrastructure/db");
-  return db;
+  const { db } = await import('@/infrastructure/db')
+  return db
+}
+
+/**
+ * Type the hand-built Drizzle query-builder chains. vi.mock() swaps the
+ * runtime `@/infrastructure/db` module, but TypeScript still resolves the real
+ * Drizzle builder types, whose generic shape doesn't match a plain `{ values }`
+ * object. The cast goes through `unknown` so it never trips `no-explicit-any`.
+ */
+function mockBuilder<T>(builder: unknown): T {
+  return builder as T
 }
 
 const validProps = {
-  userId: "user_123",
+  userId: 'user_123',
   date: { year: 1990, month: 6, day: 10 },
   time: { hour: 10, minute: 30 } as { hour: number; minute: number } | null,
   timeUnknown: false,
   latitude: 10.39,
   longitude: -75.5,
-  timezone: "America/Bogota",
-  placeName: "Cartagena, Bolívar, Colombia",
-};
+  timezone: 'America/Bogota',
+  placeName: 'Cartagena, Bolívar, Colombia',
+}
 
-describe("DrizzleBirthDataRepository", () => {
-  let repository: DrizzleBirthDataRepository;
-  let validBirthData: BirthData;
+describe('DrizzleBirthDataRepository', () => {
+  let repository: DrizzleBirthDataRepository
+  let validBirthData: BirthData
 
   beforeEach(() => {
-    repository = new DrizzleBirthDataRepository();
-    vi.clearAllMocks();
+    repository = new DrizzleBirthDataRepository()
+    vi.clearAllMocks()
 
-    const result = BirthData.create(validProps);
+    const result = BirthData.create(validProps)
     if (result.ok) {
-      validBirthData = result.value;
+      validBirthData = result.value
     } else {
-      throw new Error(`Failed to create test BirthData: ${result.error}`);
+      throw new Error(`Failed to create test BirthData: ${result.error}`)
     }
-  });
+  })
 
-  describe("create", () => {
-    it("should insert birth data into the database and return success", async () => {
-      const result = await repository.create(validBirthData);
+  describe('create', () => {
+    it('should insert birth data into the database and return success', async () => {
+      const result = await repository.create(validBirthData)
 
-      expect(result.ok).toBe(true);
+      expect(result.ok).toBe(true)
       if (result.ok) {
-        expect(result.data.userId).toBe(validBirthData.userId);
-        expect(result.data.id).toBeDefined();
+        expect(result.data.userId).toBe(validBirthData.userId)
+        expect(result.data.id).toBeDefined()
       }
-    });
+    })
 
-    it("should call db.insert with correct id generated", async () => {
-      const mockDb = await getMockedDb();
+    it('should call db.insert with correct id generated', async () => {
+      const mockDb = await getMockedDb()
 
-      await repository.create(validBirthData);
+      await repository.create(validBirthData)
 
-      expect(mockDb.insert).toHaveBeenCalledOnce();
-      const calls = vi.mocked(mockDb.insert).mock.calls;
-      expect(calls[0][0]).toBeDefined();
-    });
+      expect(mockDb.insert).toHaveBeenCalledOnce()
+      const calls = vi.mocked(mockDb.insert).mock.calls
+      expect(calls[0][0]).toBeDefined()
+    })
 
-    it("should call db.insert(...).values() with correct mapped columns", async () => {
-      const mockDb = await getMockedDb();
-      const mockValues = vi.fn().mockResolvedValue(undefined);
-      vi.mocked(mockDb.insert).mockReturnValue({ values: mockValues } as any);
+    it('should call db.insert(...).values() with correct mapped columns', async () => {
+      const mockDb = await getMockedDb()
+      const mockValues = vi.fn().mockResolvedValue(undefined)
+      vi.mocked(mockDb.insert).mockReturnValue(
+        mockBuilder({ values: mockValues }),
+      )
 
-      await repository.create(validBirthData);
+      await repository.create(validBirthData)
 
-      expect(mockValues).toHaveBeenCalledOnce();
-      const valuesArg = mockValues.mock.calls[0][0];
+      expect(mockValues).toHaveBeenCalledOnce()
+      const valuesArg = mockValues.mock.calls[0][0]
 
-      expect(valuesArg.userId).toBe("user_123");
-      expect(valuesArg.birthYear).toBe(1990);
-      expect(valuesArg.birthMonth).toBe(6);
-      expect(valuesArg.birthDay).toBe(10);
-      expect(valuesArg.birthHour).toBe(10);
-      expect(valuesArg.birthMinute).toBe(30);
-      expect(valuesArg.timeUnknown).toBe(false);
-      expect(valuesArg.latitude).toBe(10.39);
-      expect(valuesArg.longitude).toBe(-75.5);
-      expect(valuesArg.timezone).toBe("America/Bogota");
-      expect(valuesArg.placeName).toBe("Cartagena, Bolívar, Colombia");
-      expect(valuesArg.id).toEqual(expect.any(String));
-    });
+      expect(valuesArg.userId).toBe('user_123')
+      expect(valuesArg.birthYear).toBe(1990)
+      expect(valuesArg.birthMonth).toBe(6)
+      expect(valuesArg.birthDay).toBe(10)
+      expect(valuesArg.birthHour).toBe(10)
+      expect(valuesArg.birthMinute).toBe(30)
+      expect(valuesArg.timeUnknown).toBe(false)
+      expect(valuesArg.latitude).toBe(10.39)
+      expect(valuesArg.longitude).toBe(-75.5)
+      expect(valuesArg.timezone).toBe('America/Bogota')
+      expect(valuesArg.placeName).toBe('Cartagena, Bolívar, Colombia')
+      expect(valuesArg.id).toEqual(expect.any(String))
+    })
 
-    it("should map null time fields when time is unknown", async () => {
-      const mockDb = await getMockedDb();
-      const mockValues = vi.fn().mockResolvedValue(undefined);
-      vi.mocked(mockDb.insert).mockReturnValue({ values: mockValues } as any);
+    it('should map null time fields when time is unknown', async () => {
+      const mockDb = await getMockedDb()
+      const mockValues = vi.fn().mockResolvedValue(undefined)
+      vi.mocked(mockDb.insert).mockReturnValue(
+        mockBuilder({ values: mockValues }),
+      )
 
       const noTimeResult = BirthData.create({
         ...validProps,
         time: null,
         timeUnknown: true,
-      });
-      if (!noTimeResult.ok) throw new Error("Failed to create no-time BirthData");
+      })
+      if (!noTimeResult.ok)
+        throw new Error('Failed to create no-time BirthData')
 
-      await repository.create(noTimeResult.value);
+      await repository.create(noTimeResult.value)
 
-      const valuesArg = mockValues.mock.calls[0][0];
-      expect(valuesArg.birthHour).toBeNull();
-      expect(valuesArg.birthMinute).toBeNull();
-      expect(valuesArg.timeUnknown).toBe(true);
-    });
+      const valuesArg = mockValues.mock.calls[0][0]
+      expect(valuesArg.birthHour).toBeNull()
+      expect(valuesArg.birthMinute).toBeNull()
+      expect(valuesArg.timeUnknown).toBe(true)
+    })
 
-    it("should return error when database insertion fails", async () => {
-      const mockDb = await getMockedDb();
-      vi.mocked(mockDb.insert).mockReturnValueOnce({
-        values: vi.fn().mockRejectedValue(new Error("SQLITE_CONSTRAINT: UNIQUE constraint failed")),
-      } as any);
+    it('should return error when database insertion fails', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.insert).mockReturnValueOnce(
+        mockBuilder({
+          values: vi
+            .fn()
+            .mockRejectedValue(
+              new Error('SQLITE_CONSTRAINT: UNIQUE constraint failed'),
+            ),
+        }),
+      )
 
-      const result = await repository.create(validBirthData);
+      const result = await repository.create(validBirthData)
 
-      expect(result.ok).toBe(false);
+      expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toContain("SQLITE_CONSTRAINT");
+        expect(result.error).toContain('SQLITE_CONSTRAINT')
       }
-    });
+    })
 
-    it("should handle non-Error exceptions gracefully", async () => {
-      const mockDb = await getMockedDb();
-      vi.mocked(mockDb.insert).mockReturnValueOnce({
-        values: vi.fn().mockRejectedValue("string error"),
-      } as any);
+    it('should handle non-Error exceptions gracefully', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.insert).mockReturnValueOnce(
+        mockBuilder({
+          values: vi.fn().mockRejectedValue('string error'),
+        }),
+      )
 
-      const result = await repository.create(validBirthData);
+      const result = await repository.create(validBirthData)
 
-      expect(result.ok).toBe(false);
+      expect(result.ok).toBe(false)
       if (!result.ok) {
-        expect(result.error).toContain("desconocido");
+        expect(result.error).toContain('desconocido')
       }
-    });
-  });
+    })
+  })
 
-  describe("findById", () => {
-    it("should return BirthData when record exists", async () => {
-      const mockDb = await getMockedDb();
-      vi.mocked(mockDb.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([
-              {
-                id: "bd_123",
-                userId: "user_123",
-                birthYear: 1990,
-                birthMonth: 6,
-                birthDay: 10,
-                birthHour: 10,
-                birthMinute: 30,
-                timeUnknown: false,
-                latitude: 10.39,
-                longitude: -75.5,
-                timezone: "America/Bogota",
-                placeName: "Cartagena, Bolívar, Colombia",
-              },
-            ]),
+  describe('findById', () => {
+    it('should return BirthData when record exists', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.select).mockReturnValue(
+        mockBuilder({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([
+                {
+                  id: 'bd_123',
+                  userId: 'user_123',
+                  birthYear: 1990,
+                  birthMonth: 6,
+                  birthDay: 10,
+                  birthHour: 10,
+                  birthMinute: 30,
+                  timeUnknown: false,
+                  latitude: 10.39,
+                  longitude: -75.5,
+                  timezone: 'America/Bogota',
+                  placeName: 'Cartagena, Bolívar, Colombia',
+                },
+              ]),
+            }),
           }),
         }),
-      } as any);
+      )
 
-      const result = await repository.findById("bd_123");
+      const result = await repository.findById('bd_123')
 
-      expect(result).not.toBeNull();
-      expect(result?.id).toBe("bd_123");
-      expect(result?.placeName).toBe("Cartagena, Bolívar, Colombia");
-    });
+      expect(result).not.toBeNull()
+      expect(result?.id).toBe('bd_123')
+      expect(result?.placeName).toBe('Cartagena, Bolívar, Colombia')
+    })
 
-    it("should return null when record does not exist or db throws", async () => {
-      const mockDb = await getMockedDb();
-      vi.mocked(mockDb.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
+    it('should return null when record does not exist or db throws', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.select).mockReturnValue(
+        mockBuilder({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue([]),
+            }),
           }),
         }),
-      } as any);
+      )
 
-      const result = await repository.findById("non_existent");
-      expect(result).toBeNull();
-    });
-  });
+      const result = await repository.findById('non_existent')
+      expect(result).toBeNull()
+    })
+  })
 
-  describe("update", () => {
-    it("should update record in db and return updated BirthData", async () => {
-      const mockDb = await getMockedDb();
+  describe('update', () => {
+    it('should update record in db and return updated BirthData', async () => {
+      const mockDb = await getMockedDb()
       const mockSet = vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
-      });
-      vi.mocked(mockDb.update).mockReturnValue({ set: mockSet } as any);
+      })
+      vi.mocked(mockDb.update).mockReturnValue(mockBuilder({ set: mockSet }))
 
-      const result = await repository.update("bd_123", validBirthData);
+      const result = await repository.update('bd_123', validBirthData)
 
-      expect(result.ok).toBe(true);
+      expect(result.ok).toBe(true)
       if (result.ok) {
-        expect(result.data.id).toBe("bd_123");
+        expect(result.data.id).toBe('bd_123')
       }
-    });
-  });
+    })
+  })
 
-  describe("delete", () => {
-    it("should delete record from db and return true", async () => {
-      const mockDb = await getMockedDb();
-      vi.mocked(mockDb.delete).mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{ id: "bd_123" }]),
+  describe('delete', () => {
+    it('should delete record from db and return true', async () => {
+      const mockDb = await getMockedDb()
+      vi.mocked(mockDb.delete).mockReturnValue(
+        mockBuilder({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([{ id: 'bd_123' }]),
+          }),
         }),
-      } as any);
+      )
 
-      const result = await repository.delete("bd_123");
-      expect(result).toBe(true);
-    });
-  });
-});
+      const result = await repository.delete('bd_123')
+      expect(result).toBe(true)
+    })
+  })
+})

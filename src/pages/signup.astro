@@ -1,11 +1,11 @@
 ---
-import Base from "@/layouts/Base.astro";
-import AuthLayout from "@/layouts/AuthLayout.astro";
-import FormError from "@/components/ui/FormError.astro";
-import SubmitButton from "@/components/ui/SubmitButton.astro";
+import Base from '@/layouts/Base.astro'
+import AuthLayout from '@/layouts/AuthLayout.astro'
+import FormError from '@/components/ui/FormError.astro'
+import SubmitButton from '@/components/ui/SubmitButton.astro'
 
-const session = Astro.locals.session;
-if (session) return Astro.redirect("/dashboard");
+const session = Astro.locals.session
+if (session) return Astro.redirect('/dashboard')
 ---
 
 <Base title="Crear Cuenta — Astralia">
@@ -105,48 +105,51 @@ if (session) return Astro.redirect("/dashboard");
 </Base>
 
 <script>
-import { registerComponent } from "@/lib/alpine-utils";
+  import { registerComponent } from '@/lib/alpine-utils'
 
-registerComponent("signupForm", () => ({
-  name: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  error: "",
-  loading: false,
+  registerComponent('signupForm', () => ({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    error: '',
+    loading: false,
 
-  async submit() {
-    this.loading = true;
-    this.error = "";
+    async submit() {
+      this.loading = true
+      this.error = ''
 
-    if (!this.name.trim()) return this.setError("Ingresa tu nombre");
-    if (!this.email.trim()) return this.setError("Ingresa tu correo electrónico");
-    if (this.password.length < 8) return this.setError("La contraseña debe tener al menos 8 caracteres");
-    if (this.password !== this.confirmPassword) return this.setError("Las contraseñas no coinciden");
+      if (!this.name.trim()) return this.setError('Ingresa tu nombre')
+      if (!this.email.trim())
+        return this.setError('Ingresa tu correo electrónico')
+      if (this.password.length < 8)
+        return this.setError('La contraseña debe tener al menos 8 caracteres')
+      if (this.password !== this.confirmPassword)
+        return this.setError('Las contraseñas no coinciden')
 
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: this.name.trim(),
-          email: this.email.trim(),
-          password: this.password,
-          confirmPassword: this.confirmPassword,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) return this.setError(data.error || "Error al registrarse");
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: this.name.trim(),
+            email: this.email.trim(),
+            password: this.password,
+            confirmPassword: this.confirmPassword,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) return this.setError(data.error || 'Error al registrarse')
 
-      if (data.redirectTo) window.location.href = data.redirectTo;
-    } catch {
-      this.setError("Error de conexión. Intenta de nuevo.");
-    }
-  },
+        if (data.redirectTo) window.location.href = data.redirectTo
+      } catch {
+        this.setError('Error de conexión. Intenta de nuevo.')
+      }
+    },
 
-  setError(msg) {
-    this.error = msg;
-    this.loading = false;
-  },
-}));
+    setError(msg: string) {
+      this.error = msg
+      this.loading = false
+    },
+  }))
 </script>

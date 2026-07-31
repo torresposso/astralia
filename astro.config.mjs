@@ -1,7 +1,7 @@
-import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
-import alpinejs from '@astrojs/alpinejs';
-import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'astro/config'
+import node from '@astrojs/node'
+import alpinejs from '@astrojs/alpinejs'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   output: 'server',
@@ -10,4 +10,4 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-});
+})

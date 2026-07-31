@@ -203,6 +203,94 @@ describe('BirthData', () => {
       })
       expect(result.ok).toBe(true)
     })
+
+    it('should return error when date contains NaN', () => {
+      const result = BirthData.create({
+        ...validProps,
+        date: { year: NaN, month: 1, day: 1 },
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('fecha')
+      }
+    })
+
+    it('should return error when date contains Infinity', () => {
+      const result = BirthData.create({
+        ...validProps,
+        date: { year: 1990, month: 6, day: Infinity },
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('fecha')
+      }
+    })
+
+    it('should return error when latitude is NaN', () => {
+      const result = BirthData.create({
+        ...validProps,
+        latitude: NaN,
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('latitud')
+      }
+    })
+
+    it('should return error when latitude is Infinity', () => {
+      const result = BirthData.create({
+        ...validProps,
+        latitude: Infinity,
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('latitud')
+      }
+    })
+
+    it('should return error when longitude is NaN', () => {
+      const result = BirthData.create({
+        ...validProps,
+        longitude: NaN,
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('longitud')
+      }
+    })
+
+    it('should return error when longitude is -Infinity', () => {
+      const result = BirthData.create({
+        ...validProps,
+        longitude: -Infinity,
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('longitud')
+      }
+    })
+
+    it('should return error when hour is NaN', () => {
+      const result = BirthData.create({
+        ...validProps,
+        time: { hour: NaN, minute: 30 },
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('hora')
+      }
+    })
+
+    it('should return error when minute is NaN', () => {
+      const result = BirthData.create({
+        ...validProps,
+        time: { hour: 10, minute: NaN },
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error).toContain('minuto')
+      }
+    })
   })
 
   describe('from', () => {

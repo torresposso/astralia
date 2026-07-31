@@ -1,6 +1,9 @@
-import { defineConfig } from 'drizzle-kit';
+import { defineConfig } from 'drizzle-kit'
+import { existsSync } from 'node:fs'
 
-process.loadEnvFile('.env');
+if (existsSync('.env')) {
+  process.loadEnvFile('.env')
+}
 
 export default defineConfig({
   schema: './src/infrastructure/db/schema.ts',
@@ -10,4 +13,4 @@ export default defineConfig({
     url: process.env.TURSO_URL!,
     authToken: process.env.TURSO_AUTH_TOKEN!,
   },
-});
+})

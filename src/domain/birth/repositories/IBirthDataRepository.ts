@@ -8,8 +8,7 @@
 import type { BirthData } from '../BirthData.vo'
 
 export type BirthDataResult =
-  | { ok: true; data: BirthData }
-  | { ok: false; error: string }
+  { ok: true; data: BirthData } | { ok: false; error: string }
 
 export interface IBirthDataRepository {
   /** Persist a new BirthData record. Returns the stored BirthData or an error. */

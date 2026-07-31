@@ -54,7 +54,11 @@ export class BirthData {
    * Computes a numeric value from a date for easy comparison.
    * Format: YYYYMMDD (e.g. 19900610 for 1990-06-10).
    */
-  private static dateToValue(d: { year: number; month: number; day: number }): number {
+  private static dateToValue(d: {
+    year: number
+    month: number
+    day: number
+  }): number {
     return d.year * 10000 + d.month * 100 + d.day
   }
 
@@ -62,20 +66,41 @@ export class BirthData {
    * Creates a BirthData after validating all invariants.
    * Returns the error message if invalid, or the BirthData value object if valid.
    */
-  static create(props: BirthDataProps): { ok: true; value: BirthData } | { ok: false; error: string } {
+  static create(
+    props: BirthDataProps,
+  ): { ok: true; value: BirthData } | { ok: false; error: string } {
     // 1. Validate userId
     if (!props.userId.trim()) {
       return { ok: false, error: 'El identificador de usuario es requerido' }
     }
 
-    // 2. Validate date range: 1800-01-01 ≤ date ≤ today
+    // 2. Validate date: finite values and range 1800-01-01 ≤ date ≤ today
+    if (
+      !props.date ||
+      !Number.isFinite(props.date.year) ||
+      !Number.isFinite(props.date.month) ||
+      !Number.isFinite(props.date.day)
+    ) {
+      return { ok: false, error: 'La fecha no es válida' }
+    }
+
     const minDate = { year: 1800, month: 1, day: 1 }
     const today = new Date()
-    const maxDate = { year: today.getFullYear(), month: today.getMonth() + 1, day: today.getDate() }
+    const maxDate = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: today.getDate(),
+    }
 
     const dateValue = BirthData.dateToValue(props.date)
-    if (dateValue < BirthData.dateToValue(minDate) || dateValue > BirthData.dateToValue(maxDate)) {
-      return { ok: false, error: 'La fecha debe estar entre el 1 de enero de 1800 y hoy' }
+    if (
+      dateValue < BirthData.dateToValue(minDate) ||
+      dateValue > BirthData.dateToValue(maxDate)
+    ) {
+      return {
+        ok: false,
+        error: 'La fecha debe estar entre el 1 de enero de 1800 y hoy',
+      }
     }
 
     // 3. Validate time
@@ -84,21 +109,37 @@ export class BirthData {
         return { ok: false, error: 'La hora es requerida' }
       }
     } else {
-      if (props.time.hour < 0 || props.time.hour > 23) {
+      if (
+        !Number.isFinite(props.time.hour) ||
+        props.time.hour < 0 ||
+        props.time.hour > 23
+      ) {
         return { ok: false, error: 'La hora debe estar entre 0 y 23' }
       }
-      if (props.time.minute < 0 || props.time.minute > 59) {
+      if (
+        !Number.isFinite(props.time.minute) ||
+        props.time.minute < 0 ||
+        props.time.minute > 59
+      ) {
         return { ok: false, error: 'El minuto debe estar entre 0 y 59' }
       }
     }
 
     // 4. Validate latitude
-    if (props.latitude < -90 || props.latitude > 90) {
+    if (
+      !Number.isFinite(props.latitude) ||
+      props.latitude < -90 ||
+      props.latitude > 90
+    ) {
       return { ok: false, error: 'La latitud debe estar entre -90 y 90' }
     }
 
     // 5. Validate longitude (EAST positive)
-    if (props.longitude < -180 || props.longitude > 180) {
+    if (
+      !Number.isFinite(props.longitude) ||
+      props.longitude < -180 ||
+      props.longitude > 180
+    ) {
       return { ok: false, error: 'La longitud debe estar entre -180 y 180' }
     }
 
@@ -113,10 +154,16 @@ export class BirthData {
 
     // 7. Validate placeName
     if (!props.placeName.trim()) {
-      return { ok: false, error: 'El lugar debe tener entre 1 y 200 caracteres' }
+      return {
+        ok: false,
+        error: 'El lugar debe tener entre 1 y 200 caracteres',
+      }
     }
     if (props.placeName.length > 200) {
-      return { ok: false, error: 'El lugar debe tener entre 1 y 200 caracteres' }
+      return {
+        ok: false,
+        error: 'El lugar debe tener entre 1 y 200 caracteres',
+      }
     }
 
     return { ok: true, value: new BirthData(props) }

@@ -47,7 +47,10 @@ export class NatalChart {
     props: NatalChartProps,
   ): { ok: true; value: NatalChart } | { ok: false; error: string } {
     if (props.planets.length < 10) {
-      return { ok: false, error: 'Se requieren al menos 10 posiciones planetarias' }
+      return {
+        ok: false,
+        error: 'Se requieren al menos 10 posiciones planetarias',
+      }
     }
 
     if (props.houses.length !== 12) {
@@ -119,15 +122,17 @@ export class NatalChart {
   }
 
   equals(other: NatalChart): boolean {
-    return this.birthDataId === other.birthDataId
-      && this.houseSystem === other.houseSystem
-      && this.zodiac === other.zodiac
-      && this.calculatedAt.getTime() === other.calculatedAt.getTime()
-      && this.planets.length === other.planets.length
-      && this.angles.equals(other.angles)
-      && this.houses.length === other.houses.length
-      && this.aspects.length === other.aspects.length
-      && this.additionalPoints.length === other.additionalPoints.length
+    return (
+      this.birthDataId === other.birthDataId &&
+      this.houseSystem === other.houseSystem &&
+      this.zodiac === other.zodiac &&
+      this.calculatedAt.getTime() === other.calculatedAt.getTime() &&
+      this.planets.length === other.planets.length &&
+      this.angles.equals(other.angles) &&
+      this.houses.length === other.houses.length &&
+      this.aspects.length === other.aspects.length &&
+      this.additionalPoints.length === other.additionalPoints.length
+    )
   }
 
   toString(): string {

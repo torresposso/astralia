@@ -5,8 +5,11 @@
  */
 
 import { vi } from 'vitest'
-import type { IBirthDataRepository, BirthDataResult } from '@/domain/birth/repositories/IBirthDataRepository'
-import { BirthData } from '@/domain/birth/BirthData.vo'
+import type {
+  IBirthDataRepository,
+  BirthDataResult,
+} from '@/domain/birth/repositories/IBirthDataRepository'
+import { BirthData, type BirthDataProps } from '@/domain/birth/BirthData.vo'
 
 export class MockBirthDataRepository implements IBirthDataRepository {
   private store = new Map<string, BirthData>()
@@ -80,7 +83,12 @@ export class MockBirthDataRepository implements IBirthDataRepository {
     this.createSpy.mockImplementation(async (birthData: BirthData) => {
       if (this.shouldFail) return { ok: false, error: this.failMessage }
       const id = birthData.id ?? 'mock_birth_data_id'
-      const saved = BirthData.from({ ...birthData.toJSON(), id, date: birthData.date, time: birthData.time } as any)
+      const saved = BirthData.from({
+        ...birthData.toJSON(),
+        id,
+        date: birthData.date,
+        time: birthData.time,
+      } as unknown as BirthDataProps)
       this.store.set(id, saved)
       return { ok: true, data: saved }
     })
@@ -98,12 +106,19 @@ export class MockBirthDataRepository implements IBirthDataRepository {
       return null
     })
 
-    this.updateSpy.mockImplementation(async (id: string, birthData: BirthData) => {
-      if (this.shouldFail) return { ok: false, error: this.failMessage }
-      const updated = BirthData.from({ ...birthData.toJSON(), id, date: birthData.date, time: birthData.time } as any)
-      this.store.set(id, updated)
-      return { ok: true, data: updated }
-    })
+    this.updateSpy.mockImplementation(
+      async (id: string, birthData: BirthData) => {
+        if (this.shouldFail) return { ok: false, error: this.failMessage }
+        const updated = BirthData.from({
+          ...birthData.toJSON(),
+          id,
+          date: birthData.date,
+          time: birthData.time,
+        } as unknown as BirthDataProps)
+        this.store.set(id, updated)
+        return { ok: true, data: updated }
+      },
+    )
 
     this.deleteSpy.mockImplementation(async (id: string) => {
       if (this.shouldFail) return false

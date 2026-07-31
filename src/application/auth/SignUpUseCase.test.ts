@@ -60,7 +60,9 @@ describe('SignUpUseCase', () => {
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
-      expect(result.error).toBe('El formato del correo electrónico no es válido')
+      expect(result.error).toBe(
+        'El formato del correo electrónico no es válido',
+      )
     }
   })
 
@@ -75,7 +77,9 @@ describe('SignUpUseCase', () => {
 
     expect(result.ok).toBe(false)
     if (!result.ok) {
-      expect(result.error).toBe('La contraseña debe tener al menos 8 caracteres')
+      expect(result.error).toBe(
+        'La contraseña debe tener al menos 8 caracteres',
+      )
     }
   })
 
@@ -95,7 +99,9 @@ describe('SignUpUseCase', () => {
   })
 
   it('should return repository error when the repository fails', async () => {
-    const useCase = new SignUpUseCase(new MockAuthRepository().withFailure('Email already registered'))
+    const useCase = new SignUpUseCase(
+      new MockAuthRepository().withFailure('Email already registered'),
+    )
     const result = await useCase.execute({
       name: 'Test User',
       email: 'user@example.com',

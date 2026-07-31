@@ -1,6 +1,11 @@
 import { vi } from 'vitest'
 import { User } from '@/domain/auth/User.entity'
-import type { IAuthRepository, SignInInput, SignUpInput, AuthResult } from '@/domain/auth/repositories/IAuthRepository'
+import type {
+  IAuthRepository,
+  SignInInput,
+  SignUpInput,
+  AuthResult,
+} from '@/domain/auth/repositories/IAuthRepository'
 
 /**
  * Shared mock for IAuthRepository used across all Application test files.
@@ -27,21 +32,31 @@ export class MockAuthRepository implements IAuthRepository {
   readonly getSessionSpy = vi.fn<IAuthRepository['getSession']>()
 
   constructor() {
-    this.mockUser = User.create({ id: '1', name: 'Test User', email: 'test@test.com' })
+    this.mockUser = User.create({
+      id: '1',
+      name: 'Test User',
+      email: 'test@test.com',
+    })
     this.setupDefaultBehavior()
   }
 
   // ---- IAuthRepository implementation ----
 
-  async signIn(_input: SignInInput): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }> {
+  async signIn(
+    _input: SignInInput,
+  ): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }> {
     return this.signInSpy(_input)
   }
 
-  async signUp(_input: SignUpInput): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }> {
+  async signUp(
+    _input: SignUpInput,
+  ): Promise<{ ok: true; data: AuthResult } | { ok: false; error: string }> {
     return this.signUpSpy(_input)
   }
 
-  async signOut(_input?: { headers?: Headers }): Promise<{ cookies?: string[] } | void> {
+  async signOut(_input?: {
+    headers?: Headers
+  }): Promise<{ cookies?: string[] } | void> {
     return this.signOutSpy(_input)
   }
 
@@ -72,7 +87,11 @@ export class MockAuthRepository implements IAuthRepository {
 
   /** Reset to default state and clear spies */
   reset(): this {
-    this.mockUser = User.create({ id: '1', name: 'Test User', email: 'test@test.com' })
+    this.mockUser = User.create({
+      id: '1',
+      name: 'Test User',
+      email: 'test@test.com',
+    })
     this.shouldFail = false
     this.failMessage = 'Operation failed'
     this.mockCookies = ['session=abc123']

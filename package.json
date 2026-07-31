@@ -10,12 +10,18 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "check": "astro check",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
@@ -33,11 +39,17 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@eslint/js": "10.0.1",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/expect": "^4.1.10",
     "@vitest/runner": "^4.1.10",
     "drizzle-kit": "^0.31.10",
+    "eslint": "10.8.0",
+    "eslint-plugin-astro": "3.0.1",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
     "typescript": "^6.0.3",
+    "typescript-eslint": "8.65.0",
     "vitest": "^4.1.10"
   }
 }

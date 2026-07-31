@@ -28,10 +28,13 @@ describe('OpenMeteoGeocodingAdapter', () => {
       ],
     }
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => mockApiResponse,
-    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockApiResponse,
+      }),
+    )
 
     const results = await adapter.searchCities('Cartagena')
     expect(results).toHaveLength(1)
@@ -44,7 +47,10 @@ describe('OpenMeteoGeocodingAdapter', () => {
   })
 
   it('handles fetch errors gracefully and returns empty array', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('Network error')),
+    )
 
     const results = await adapter.searchCities('Bogota')
     expect(results).toEqual([])

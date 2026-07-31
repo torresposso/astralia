@@ -10,8 +10,7 @@ export type ChartCalculationOptions = {
 }
 
 export type ChartCalculationResult =
-  | { ok: true; data: NatalChart }
-  | { ok: false; error: string }
+  { ok: true; data: NatalChart } | { ok: false; error: string }
 
 export interface IChartCalculator {
   /**
