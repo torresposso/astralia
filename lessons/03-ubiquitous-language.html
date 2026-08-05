@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 03 — Words Are Architecture: Ubiquitous Language · Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 2 · Lesson 03</p>
+      <h1>Words are architecture: ubiquitous language</h1>
+      <p class="subtitle">
+        A rename is not a cosmetic change. The words you use in code,
+        conversations, and docs are the architecture of understanding.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          You and a chef are writing a recipe together. You say "dough" — you
+          mean money. The chef says "dough" — they mean flour paste. You write
+          "add the dough", the chef adds flour, you lose the money. Who is
+          wrong? Nobody — the <em>shared vocabulary</em> was wrong.
+        </p>
+        <p>
+          Software teams live this every day. The business says one thing, the
+          code says another, the docs say a third, and the AI confidently mixes
+          all three. DDD's answer is a <strong>ubiquitous language</strong>: one
+          shared vocabulary that everyone — humans and code — actually uses.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will know what
+          <strong>ubiquitous language</strong> is, and you will be able to judge
+          an AI rename as a domain-language decision, not a cosmetic refactor.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What is a domain model, and what does it deliberately leave out?
+            </li>
+            <li>
+              Why does "Email" mean one thing in Auth and something else in a
+              messaging context?
+            </li>
+            <li>Name the three Astralia contexts you drew in Lesson 02.</li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 5</p>
+          <ul>
+            <li>
+              <strong>Ubiquitous language</strong> — the shared,
+              context-specific vocabulary used by domain participants and code.
+            </li>
+            <li>
+              <strong>Vocabulary contract</strong> — the document (here,
+              <code>CONTEXT.md</code>) that fixes terms and forbidden synonyms.
+            </li>
+            <li>
+              <strong>Overloaded name</strong> — one word used for several
+              different roles.
+            </li>
+            <li>
+              <strong>Stale documentation</strong> — docs that describe an older
+              model than the code.
+            </li>
+            <li>
+              <strong>Model drift</strong> — a term's meaning silently changing
+              while the code moves on.
+            </li>
+          </ul>
+        </div>
+
+        <h3>Step 1 — One shared dictionary</h3>
+        <p>
+          <strong>In plain words:</strong> ubiquitous language is the team
+          dictionary: the same words for the same things, used in conversation,
+          in docs, and in code.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> ubiquitous language is the
+          shared, context-specific vocabulary used by domain participants and
+          represented consistently in conversations, documentation, and code. It
+          is not a translation table or a UI copy list.
+        </p>
+        <p>
+          <strong>The analogy — a team dictionary:</strong> every sport has one.
+          Players and coaches both read it: "offside" means exactly one thing,
+          so a referee's call is understood instantly. Code identifiers become
+          entries in that dictionary: <code>BirthData</code> means one thing,
+          everywhere, to humans and to the AI.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A printed dictionary is frozen; a ubiquitous language evolves as the
+            business learns. It also has a local scope: the same word can mean
+            different things in different bounded contexts — which is why the
+            dictionary is per-context, not global.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Ubiquitous language is the shared vocabulary used consistently by the people and the code that build the domain. Library catalogs and UI translations are not domain vocabulary — they are technical or presentational."
+        >
+          <p class="quiz-question">What is ubiquitous language?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Shared words everyone uses
+                for concepts.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Every library function and
+                type name.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Labels users see translated
+                to Spanish.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — One word, many roles: the overload trap</h3>
+        <p>
+          <strong>In plain words:</strong> when one name is used for several
+          different jobs, the word stops carrying meaning and starts carrying
+          confusion.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> overloading — reusing one
+          identifier for distinct concepts — makes model drift invisible,
+          because a rename or a new rule touches "the same word" in places that
+          mean different things.
+        </p>
+        <p>
+          <strong>The analogy:</strong> your house key and your office key look
+          similar, but they open different doors. Calling both "the key" works
+          until one day you need to cut a new one — for which door? In Astralia,
+          the family <code>BirthData</code> plays several roles:
+          <code>BirthData.vo.ts</code> (the domain value object),
+          <code>BirthDataInput</code> in <code>SaveBirthData.ts</code> (the
+          route payload), <code>BirthDataCard.astro</code> (a UI component), and
+          the <code>api/birth-data/</code> routes (HTTP). Same word, different
+          roles — and each role can change independently.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Keys are physical objects; names are free. We could rename one role
+            tomorrow — and sometimes we should. The discipline is not "never
+            overload", it is "notice the overload and decide on purpose".
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="BirthData appears as a value object, an input type, a UI card, and route names — the same word, different roles. Folders and databases are physical organization, not the source of the confusion."
+        >
+          <p class="quiz-question">Why is BirthData used so often?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Same word names different
+                roles.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Same folder contains many
+                files.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Same database stores repeated
+                rows.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — The vocabulary contract: CONTEXT.md</h3>
+        <p>
+          <strong>In plain words:</strong> the team writes the dictionary down —
+          term, meaning, context, and the forbidden synonyms — so everyone can
+          check before they speak or code.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a vocabulary contract fixes the
+          ubiquitous language for a bounded context, listing terms, their
+          meanings, the real code symbols, and the synonyms to avoid; it is the
+          authority against which renames are judged.
+        </p>
+        <p>
+          <strong>The analogy:</strong> a constitution. Laws (terms) are written
+          down, and when there is a dispute you read the constitution, not what
+          someone remembers. In Astralia,
+          <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> is that document:
+          for each term it gives the meaning and an <code>_Avoid_</code> list
+          (e.g., <em>Avoid: Dato de nacimiento</em> for Birth Data,
+          <em>Avoid: Login</em> for Sign In).
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A constitution is hard to change; a vocabulary contract must be easy
+            to update when the business changes. And like any document, it can
+            go stale — which is why the <em>code</em> is the final witness when
+            docs and code disagree.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will audit the vocabulary of one Astralia term out loud. Read with
+          me:
+          <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> and the code it
+          claims to describe,
+          <a href="../src/domain/chart/ports/IChartCalculator.ts"
+            ><code>src/domain/chart/ports/IChartCalculator.ts</code></a
+          >.
+        </p>
+        <p>
+          <em
+            >"First I open CONTEXT.md and I look at the Chart Calculator entry
+            (it is written in Spanish). It says: 'Domain Service (interface
+            IChartCalculator) that, given Birth Data in UT and calculation
+            options, produces a NatalChart.' One label: a domain service. Good —
+            now I check the code.
+          </em>
+        </p>
+        <ul>
+          <li>
+            <em
+              >"The port IChartCalculator lives in the domain, as a contract
+              should. But who implements it? CaelusChartCalculator — and that
+              class sits in src/infrastructure/chart/ and wraps the caelus
+              library. An implementation in infrastructure that satisfies a
+              domain port is an adapter, not a domain service (Lesson 06)."</em
+            >
+          </li>
+          <li>
+            <em
+              >"So the contract's label and the code disagree. Which source is
+              authoritative? The code and the architecture tests, not the prose.
+              The entry's words drift from the code's real role — that is model
+              drift, and catching it is the skill."</em
+            >
+          </li>
+        </ul>
+        <p>
+          <em
+            >"What I noticed: the contract's label is stale; the code is the
+            ground truth. When the AI proposes a rename, I now know to ask:
+            which document says what, and what does the code actually do
+            today?"</em
+          >
+        </p>
+        <p>
+          <strong>My evidence-based note:</strong> "CONTEXT.md calls
+          CaelusChartCalculator a domain service, but the class lives in
+          <code>src/infrastructure/chart/</code> and implements the
+          <code>IChartCalculator</code> port — that is an adapter. The doc label
+          drifts; the code and
+          <a href="../tests/architecture.test.ts"
+            ><code>tests/architecture.test.ts</code></a
+          >
+          are authoritative."
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three vocabulary questions, with less help each time. Answer before
+          opening the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Open
+          <a href="../CONTEXT.md"><code>CONTEXT.md</code></a
+          >. In which bounded context does the term <code>NatalChart</code>
+          live, and what does the contract say it is?
+        </p>
+        <p>
+          <em>My reasoning:</em> the term says "natal chart", and the code
+          symbol is <code>NatalChart.vo.ts</code> under
+          <code>src/domain/chart/</code>. The contract describes it as the chart
+          of a person's birth moment — that is the Chart context. Answer: Chart
+          context; "the specific type of Chart that represents the natal chart
+          of a person at the moment of their birth".
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Chart. The contract defines NatalChart as the Value Object of the
+            domain containing planets, angles, houses, aspects, and
+            additionalPoints — immutable, calculated by IChartCalculator.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> What does the term
+          <code>whole-sign</code> mean in the contract, and what code symbol
+          emits it?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> CONTEXT.md explains Whole Sign as
+          the house system used when birth time is unknown. Now find where the
+          warning is emitted — search for the string in
+          <a href="../src/application/birth/SaveBirthData.ts"
+            ><code>SaveBirthData.ts</code></a
+          >
+          or
+          <a href="../src/domain/birth/warnings.ts"><code>warnings.ts</code></a
+          >…
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            Whole Sign = the house system used when Birth Time is unknown; every
+            house cusp equals the sign degree, and a warning is displayed. The
+            code symbol is the <code>'whole-sign'</code> member of
+            <code>WarningCode</code>, pushed by <code>SaveBirthData</code> when
+            the saved record has no time.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> The contract lists the term
+          <code>toUT</code> under <code>_Avoid_</code> for CaelusBirthConverter,
+          yet the port file is named
+          <a href="../src/domain/birth/ports/IBirthToUTConverter.ts"
+            ><code>IBirthToUTConverter.ts</code></a
+          >. Is that a contradiction, or a language decision?
+        </p>
+        <p>
+          <em>Start:</em> read the Avoid line: it says to avoid the shorthand
+          "toUT" and the generic "Caelus converter". The full term in the
+          contract is "Universal Time (UT)". Now complete the last step: the
+          file name is the real symbol, but the language contract says the
+          preferred name is ______ — and when a rule changes, you should update
+          the ______, not the file, unless the rename is agreed by the team.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            Not a contradiction — a decision. The contract prefers the full
+            phrase "Universal Time (UT)" and the specific name
+            "CaelusBirthConverter", while flagging "toUT" as shorthand to avoid
+            in speech and docs. Real symbols can lag the contract; the contract
+            is what you use to notice and fix the drift.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Build a <strong>language contract</strong> table for these seven
+          terms. For each one, open
+          <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> and the linked
+          files, then fill the columns:
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Language contract — 7 terms
+            </caption>
+            <thead>
+              <tr>
+                <th>Term</th>
+                <th>Plain meaning</th>
+                <th>Bounded context</th>
+                <th>Real symbols</th>
+                <th>Forbidden / ambiguous synonyms</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>BirthData</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>NatalChart</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>whole-sign</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>dst-ambiguous</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>toUT</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>IGeocoder</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>SearchCities</code></td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints:</p>
+        <ul>
+          <li>
+            <strong>BirthData</strong> — raw input for chart computation;
+            symbols include <code>BirthData.vo.ts</code>,
+            <code>IBirthDataRepository</code>, <code>SaveBirthData</code>.
+          </li>
+          <li>
+            <strong>dst-ambiguous</strong> — a warning code when a local time
+            occurred twice (DST fall-back); symbol
+            <code>'dst-ambiguous'</code> in <code>WarningCode</code>.
+          </li>
+          <li>
+            <strong>IGeocoder</strong> — a domain port that resolves place names
+            to coordinates/timezone; implemented by
+            <code>OpenMeteoGeocodingAdapter</code>.
+          </li>
+          <li>
+            <strong>SearchCities</strong> — the application use case that calls
+            the geocoder for city autocomplete.
+          </li>
+        </ul>
+        <p>
+          When you finish the table, write one evidence-based
+          <strong>rename or veto note</strong>: a term the AI (or a doc) uses
+          that the contract forbids, with the file or symbol that proves the
+          current truth.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A language contract plus one evidence-based note — the tool that
+            turns every AI rename from a coin flip into a decision you can
+            justify.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "CONTEXT.md is the vocabulary authority; the code is the final
+            witness when docs disagree."
+          </li>
+          <li>
+            "BirthData is an overloaded name — I can list its roles without
+            renaming anything."
+          </li>
+          <li>
+            "A rename is a domain-language decision; I judge it with the
+            contract, not with taste."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the dictionary analogy breaks (recap):</strong>
+          dictionaries are static and global; ubiquitous language evolves and is
+          scoped per context, and the contract itself can go stale — always
+          verify against the code.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> with the language fixed, we classify the
+          things it names — identity versus description (entity vs value
+          object).
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Is a rename cosmetic? —
+          No: it is a language decision, judged against CONTEXT.md and the
+          current code."
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant:
+          <em
+            >"Should <code>SaveBirthData</code> become
+            <code>CreateBirthDataUseCase</code>?"</em
+          >
+          Require an answer that names the context, describes the current
+          behavior (<code>create()</code> and <code>update()</code> over a
+          private <code>save()</code>), and weighs the cost of changing the
+          language before deciding. If it renames "because it's cleaner", veto
+          it with the evidence: the module handles both create and update today.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Ubiquitous language is the shared, context-specific vocabulary used consistently by domain participants and code. “A dictionary of every technical library term” is a catalog, not domain language. “User-interface labels translated into local Spanish” describes UI copy — the language of the screen, not the model. In Astralia, CONTEXT.md anchors terms like BirthData and whole-sign in one place."
+        >
+          <p class="quiz-question">What is ubiquitous language?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Shared terms used
+                consistently by domain participants.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A dictionary of every
+                technical library term.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> User-interface labels
+                translated into the local Spanish.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 7 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Primary source: Eric Evans, official Domain-Driven Design materials
+            —
+            <a href="https://www.domainlanguage.com/ddd/"
+              >domainlanguage.com/ddd/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Ubiquitous language</em>, <em>Bounded context</em>,
+            <em>Domain model</em>).
+          </li>
+          <li>
+            Local authorities:
+            <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> (the vocabulary
+            contract), the code it describes —
+            <a href="../src/domain/chart/ports/IChartCalculator.ts"
+              ><code>IChartCalculator.ts</code></a
+            >
+            and
+            <a href="../src/infrastructure/chart/CaelusChartCalculator.ts"
+              ><code>CaelusChartCalculator.ts</code></a
+            >
+            — plus
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>SaveBirthData.ts</code></a
+            >
+            and
+            <a href="../src/components/birth/BirthDataCard.astro"
+              ><code>BirthDataCard.astro</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-02.md"
+            ><code>learning-records/session-02.md</code></a
+          >: cold recall, language contract artifact, judged AI proposal (the
+          rename), verdict with evidence, confidence (1-5) and unresolved
+          question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 03 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="02-bounded-context.html">Lesson 02 — Bounded context</a> ·
+        Next:
+        <a href="04-entity-vs-value-object.html"
+          >Lesson 04 — Entity vs value object</a
+        >
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

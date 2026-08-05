@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 07 — User Goals Become Use Cases: The Application Layer · Astralia
+      DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 4 · Lesson 07</p>
+      <h1>User goals become use cases: the application layer</h1>
+      <p class="subtitle">
+        Someone must run the show: load, decide, save, respond. That someone is
+        the use case — and it never decides the recipe.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          You order pasta in a restaurant. The waiter takes the order, walks to
+          the kitchen, and later brings the plate. Who decides the recipe — the
+          waiter or the chef? And who would you blame if the pasta arrives cold
+          or with the wrong ingredients?
+        </p>
+        <p>
+          The waiter <em>orchestrates</em>: they move the order from table to
+          kitchen and back, and they do not cook. The chef <em>decides</em>:
+          recipe, portions, quality. Software needs the same separation — a
+          coordinator for each user goal, and business rules living with the
+          domain, not scattered in the transport layer.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to trace any API route to
+          its use case, and demand that business rules never live directly in
+          HTTP handlers.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What proves an aggregate root? (Lesson 05) What does a repository
+              alone prove?
+            </li>
+            <li>Who owns a port, and who knows the vendor? (Lesson 06)</li>
+            <li>Name the adapter that implements <code>IGeocoder</code>.</li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 4</p>
+          <ul>
+            <li>
+              <strong>Use case</strong> — an application-level coordinator for
+              one user goal.
+            </li>
+            <li>
+              <strong>Application service</strong> — another name for the same
+              coordinator.
+            </li>
+            <li>
+              <strong>Orchestration</strong> — running the sequence: load,
+              decide, save, respond.
+            </li>
+            <li>
+              <strong>Domain service</strong> — a business rule that does not
+              live in one object (Astralia has none yet).
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">TS basics — a function is a recipe</p>
+          <p>
+            A function is a named set of steps that turns inputs into an output
+            and can be reused. The analogy (from Samer Buna at freeCodeCamp): a
+            recipe — ingredients in, dish out, same steps every time. A program
+            is a recipe book; the computer is the cook.
+          </p>
+          <p>
+            Where this stops being true: recipes do not call other recipes with
+            promises and errors. Functions can return async values, fail
+            halfway, and call other functions — a recipe cannot. The idea that
+            survives: steps in, result out, reusable.
+          </p>
+        </div>
+
+        <h3>Step 1 — The use case: one goal, end to end</h3>
+        <p>
+          <strong>In plain words:</strong> a use case is the coordinator that
+          runs one user goal end to end: load what you need, decide, save,
+          respond.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a use case (application service)
+          coordinates one user goal, calling domain objects and ports in the
+          right order; it is not the place to dump business rules or
+          infrastructure details.
+        </p>
+        <p>
+          <strong>The analogy — the waiter vs the chef:</strong> the waiter runs
+          the order; the chef decides the recipe. In Astralia,
+          <code>SaveBirthData</code> is the waiter: it validates via
+          <code>BirthData.create()</code> (the chef), gates the UT conversion
+          through <code>IBirthToUTConverter</code> (ordering from the pantry),
+          and persists through <code>IBirthDataRepository</code>.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A waiter serves one table at a time; a use case can be called by
+            several routes and can return rich results. Also, waiters are
+            replaceable — use cases carry real policy (the DST gate), so they
+            deserve their own tests, not just the routes' tests.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A use case coordinates one user goal end to end. Database access and HTTP methods are implementation details, not goals — the use case may touch ports, but it is defined by the user goal it serves."
+        >
+          <p class="quiz-question">What does a use case orchestrate?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> One user goal, start to
+                finish.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> All database queries, writes,
+                and reads.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> The HTTP methods of every
+                route.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — Orchestrating vs deciding</h3>
+        <p>
+          <strong>In plain words:</strong> the use case runs the show, but the
+          domain makes the business decisions.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> orchestration is sequencing —
+          load, validate, convert, persist, map; decisions — whether an
+          operation is legal and what it means — belong to domain objects and
+          domain policy.
+        </p>
+        <p>
+          <strong>The analogy — the ATM (Khorikov):</strong> the application
+          service orchestrates: it checks the balance (a decision made inside
+          the entity), dispenses cash, charges the gateway, saves. The domain
+          makes the business decisions; the app service runs the show and talks
+          to the outside world.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            An ATM is a physical machine with one job. Use cases are code that
+            can grow fat if no one watches: every "while I'm here, let me also
+            …" pushes a rule into the coordinator. The discipline is
+            "why-to-change": rules go to the domain, sequence stays here.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Business rules are decided by domain objects and their invariants — the chef, not the waiter. Tables and routes store and transport; they do not decide what the business means."
+        >
+          <p class="quiz-question">Who decides the business rules?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Domain objects and their
+                invariants.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Database tables and their
+                indexes.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> API routes and their
+                responses.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — Domain services: a rule without a home (yet)</h3>
+        <p>
+          <strong>In plain words:</strong> sometimes a business rule does not
+          naturally live in one object — it applies between objects. DDD calls
+          that a domain service: a referee applying a rule between players.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a domain service is a
+          domain-layer object expressing a business policy that does not fit
+          inside a single entity or value object; it depends only on domain
+          concepts.
+        </p>
+        <p>
+          <strong>The analogy — the referee:</strong> a referee does not play;
+          they apply the rule between players. In Astralia the best candidate is
+          the DST policy (nonexistent / ambiguous / ok) — a rule that lives
+          between the birth data and the UT conversion.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Referees are impartial humans with whistles; domain services are
+            code objects that must be tested like any rule. And beware the
+            naming trap: <code>CaelusChartCalculator</code> is NOT a domain
+            service — it lives in infrastructure and implements the
+            <code>IChartCalculator</code> port. It is an adapter (Lesson 06
+            material), not a domain object. Astralia has no pure domain service
+            yet.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will trace three real flows from HTTP route to use case to port, out
+          loud. Follow the reasoning; you will write one card yourself.
+        </p>
+        <ul class="sources">
+          <li>
+            <a href="../src/pages/api/auth/signin.ts"
+              ><code>src/pages/api/auth/signin.ts</code></a
+            >
+            →
+            <a href="../src/application/auth/SignIn.ts"
+              ><code>src/application/auth/SignIn.ts</code></a
+            >
+          </li>
+          <li>
+            <a href="../src/pages/api/birth-data/create.ts"
+              ><code>src/pages/api/birth-data/create.ts</code></a
+            >
+            →
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>src/application/birth/SaveBirthData.ts</code></a
+            >
+            (its <code>create()</code> and <code>update()</code> both run the
+            private <code>save()</code>)
+          </li>
+          <li>
+            <a href="../src/pages/api/chart/natal.ts"
+              ><code>src/pages/api/chart/natal.ts</code></a
+            >
+            →
+            <a href="../src/application/chart/CalculateChart.ts"
+              ><code>src/application/chart/CalculateChart.ts</code></a
+            >
+          </li>
+        </ul>
+        <p>
+          <em
+            >"First, signin. The route receives email and password. It does NOT
+            validate them itself — it builds a SignIn use case and calls
+            execute(). Inside SignIn: validate Email.create, validate
+            Password.create (domain objects decide), then authRepo.signIn (a
+            port), then map the result. Given an email and password; when
+            execute() runs; then it returns ok with redirectTo and cookies, or
+            an error.
+          </em>
+        </p>
+        <p>
+          <em
+            >"Second, birth-data/create. The route maps the HTTP body via
+            toBirthDataInput, then SaveBirthData.create() or update() — both
+            funnel into private save(). SaveBirthData validates with
+            BirthData.create (rule), gates the UT converter (port), and persists
+            via the repository (port). It returns typed warnings. Now, who turns
+            the warning code 'whole-sign' into a Spanish sentence? Not
+            SaveBirthData — the interface layer, in responseMapping.ts. That
+            file maps WarningCode to UI strings and errors by their typed
+            discriminant."</em
+          >
+        </p>
+        <p>
+          <em
+            >"Third, chart/natal. The route calls CalculateChart, which loads
+            birth data through IBirthDataRepository, converts through
+            IBirthToUTConverter, and calculates through IChartCalculator — the
+            port whose adapter is CaelusChartCalculator. The use case
+            coordinates; the adapter does the astrology."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> every flow has the same skeleton —
+          route (transport) → use case (orchestration) → domain objects decide →
+          ports → adapters → result mapped at the interface. When the AI wants
+          to put persistence in a route, it is skipping the skeleton.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three questions toward your own use-case card, with less help each
+          time. Answer before opening the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Write the Given/When/Then for
+          the sign-in flow.
+        </p>
+        <p>
+          <em>My reasoning:</em> Given a valid email and password (the inputs);
+          when <code>SignIn.execute()</code> runs; then the repository signs the
+          user in and the use case returns
+          <code>{ ok: true, redirectTo: '/dashboard', cookies }</code> — or, if
+          credentials are wrong, <code>{ ok: false, error }</code>. Notice the
+          decision "is this email well-formed?" happens in the domain objects,
+          not in the route.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Given an email and password; when SignIn.execute() runs; then Email
+            and Password are validated in the domain, the auth repository
+            authenticates through the port, and the result (redirect + cookies,
+            or an error) is returned to the route.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Who decides that a nonexistent
+          local time is an error, and who merely runs the check?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> read SaveBirthData step 3: the
+          converter returns a status ('ok' | 'ambiguous' | 'nonexistent').
+          Complete the thought: the ______ returns the status (a mechanism), and
+          ______ applies the policy: nonexistent → reject, ambiguous → warning.
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            The UT converter (<code>IBirthToUTConverter</code>) computes the
+            status — a mechanism; <code>SaveBirthData</code> applies the DST
+            policy — reject on 'nonexistent', warn on 'ambiguous'. The decision
+            lives in the use case, which is why the use case needs its own
+            tests.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Why do the UI strings live
+          in
+          <a href="../src/pages/api/birth-data/responseMapping.ts"
+            ><code>src/pages/api/birth-data/responseMapping.ts</code></a
+          >
+          and not inside <code>SaveBirthData</code>?
+        </p>
+        <p>
+          <em>Start:</em> SaveBirthData returns typed codes
+          (<code>WarningCode[]</code>, typed errors). Complete the last step:
+          the use case speaks ______ (codes and types); the interface layer
+          speaks ______ (HTTP and user-facing strings); keeping them apart means
+          the domain never knows about ______.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            The use case speaks domain language (typed codes); the interface
+            layer speaks HTTP and user-facing strings. Keeping them apart means
+            the domain and application never know about UI text — the exact
+            reason responseMapping.ts exists and warns are translated there.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Build a <strong>use-case card</strong> for the birth-data save flow.
+          Reopen
+          <a href="../src/pages/api/birth-data/create.ts"
+            ><code>src/pages/api/birth-data/create.ts</code></a
+          >,
+          <a href="../src/application/birth/SaveBirthData.ts"
+            ><code>src/application/birth/SaveBirthData.ts</code></a
+          >, and
+          <a href="../src/pages/api/birth-data/responseMapping.ts"
+            ><code>src/pages/api/birth-data/responseMapping.ts</code></a
+          >, then fill the card in your notebook. Do not edit the repository.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Use-case card — save birth data
+            </caption>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Your answer (with evidence)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Given / When / Then</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Domain concepts it uses</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Ports it calls</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Result / error mapping</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints:</p>
+        <ul>
+          <li>
+            The Given is the HTTP body mapped by <code>toBirthDataInput</code>;
+            the When is <code>SaveBirthData.create()</code> (or
+            <code>update()</code>); the Then is the typed output plus the
+            response built by <code>responseMapping.ts</code>.
+          </li>
+          <li>
+            Domain concepts: <code>BirthData</code>, <code>WarningCode</code>,
+            the DST policy. Ports: <code>IBirthDataRepository</code>,
+            <code>IBirthToUTConverter</code>.
+          </li>
+          <li>
+            Result mapping: warnings become UI sentences; errors become HTTP
+            status codes by typed discriminant — never by string matching.
+          </li>
+        </ul>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A use-case card that makes orchestration and business policy visibly
+            separate — the proof you can place a new rule by reason-to-change,
+            not by guesswork.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "A use case coordinates one user goal through ports; domain objects
+            decide the rules."
+          </li>
+          <li>
+            "I can trace signin, birth-data, and chart flows from route to use
+            case to port."
+          </li>
+          <li>
+            "CaelusChartCalculator is an adapter, not a domain service; Astralia
+            has no pure domain service yet."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the waiter/chef analogy breaks (recap):</strong> waiters
+          are interchangeable and carry no policy; use cases carry real policy
+          (the DST gate) and need their own tests.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> the rule that keeps this whole skeleton
+          honest — the dependency rule, architecture as an AI navigation map.
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Where does a new rule
+          go? — By reason-to-change: domain decides, use case coordinates,
+          adapter implements, route transports."
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant to design a new feature that writes a birth rule
+          directly inside an API route — for example:
+          <em
+            >"Add a new birth rule and handle persistence directly in
+            src/pages/api/birth-data/create.ts."</em
+          >
+          Judge the proposal: a rule change should live in the domain (e.g.,
+          <code>BirthData.create()</code>), the orchestration in a use case, and
+          persistence behind a domain-owned port. Veto any design that puts
+          business rules or Drizzle imports into the route.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Use cases coordinate one user goal through ports: they sequence domain decisions and adapter calls. Entities do not call infrastructure, and controllers do not query tables to enforce business rules. In Astralia, SignIn and SaveBirthData are the coordinators; BirthData and the DST policy are the deciders."
+        >
+          <p class="quiz-question">Where does orchestration belong?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Use cases coordinate a user
+                goal through ports.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Entities coordinate all
+                infrastructure calls through framework services.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Controllers coordinate
+                business rules directly by querying tables.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 8 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Khorikov, "Domain services vs Application services" (the ATM
+            example) —
+            <a
+              href="https://enterprisecraftsmanship.com/posts/domain-vs-application-services/"
+              >enterprisecraftsmanship.com/posts/domain-vs-application-services/</a
+            >.
+          </li>
+          <li>
+            Evans, official Domain-Driven Design materials —
+            <a href="https://www.domainlanguage.com/ddd/"
+              >domainlanguage.com/ddd/</a
+            >.
+          </li>
+          <li>
+            freeCodeCamp (Samer Buna), "Hard Coding Concepts Explained with
+            Simple Real-life Analogies" (the recipe/cook analogy) —
+            <a
+              href="https://www.freecodecamp.org/news/hard-coding-concepts-explained-with-simple-real-life-analogies-280635e98e37/"
+              >freecodecamp.org/news/hard-coding-concepts-explained-with-simple-real-life-analogies-280635e98e37/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Use case / application service</em>, <em>Port</em>,
+            <em>Adapter</em>).
+          </li>
+          <li>
+            Local files:
+            <a href="../src/application/auth/SignIn.ts"
+              ><code>SignIn.ts</code></a
+            >,
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>SaveBirthData.ts</code></a
+            >,
+            <a href="../src/application/chart/CalculateChart.ts"
+              ><code>CalculateChart.ts</code></a
+            >,
+            <a href="../src/pages/api/birth-data/responseMapping.ts"
+              ><code>responseMapping.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-04.md"
+            ><code>learning-records/session-04.md</code></a
+          >: cold recall, use-case card, judged AI proposal (rules in the API
+          route), verdict with evidence, confidence (1-5) and unresolved
+          question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 07 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="06-ports-adapters-repository.html"
+          >Lesson 06 — Ports, adapters, repository</a
+        >
+        · Next:
+        <a href="08-dependency-rule.html">Lesson 08 — The dependency rule</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

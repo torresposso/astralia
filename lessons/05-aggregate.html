@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 05 — Aggregate and Aggregate Root: Protecting Consistency ·
+      Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 3 · Lesson 05</p>
+      <h1>Protecting consistency: aggregate and aggregate root</h1>
+      <p class="subtitle">
+        Some objects must change together, and one object must guard the door.
+        This lesson turns "is this an aggregate?" from a guess into an evidence
+        question.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          You are at the supermarket with a cart. Can you reach into the cart,
+          grab the milk, and change its price yourself? Of course not — the
+          price, the quantity, and the total must stay consistent, and the store
+          guards that. The cart is not a pile of loose items; it is a
+          <em>unit</em>: you add items, the total updates, and the cart refuses
+          impossible states like a negative quantity.
+        </p>
+        <p>
+          Software has the same need. Some objects must change together or the
+          business is corrupted — and somebody has to guard the door. DDD calls
+          that group an <strong>aggregate</strong> and the door its
+          <strong>aggregate root</strong>.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to say, with evidence,
+          whether Astralia's <code>BirthData</code> is an aggregate root — and
+          veto AI proposals that call any persisted value an aggregate.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What makes something an entity, and what makes something a value
+              object?
+            </li>
+            <li>
+              What evidence did we use to classify <code>Email</code> as a value
+              object in Lesson 04?
+            </li>
+            <li>
+              What is an invariant, and where does
+              <code>BirthData.create()</code>
+              enforce them?
+            </li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 3</p>
+          <ul>
+            <li>
+              <strong>Aggregate</strong> — a group of objects that change
+              together as one consistency boundary.
+            </li>
+            <li>
+              <strong>Aggregate root</strong> — the identity-bearing entry
+              point; outside code changes the group only through it.
+            </li>
+            <li>
+              <strong>Consistency boundary</strong> — the line inside which
+              invariants must hold together.
+            </li>
+          </ul>
+          <p class="meta-line">
+            Recycled: <em>invariant</em> (Lesson 01) and
+            <em>entity/value object</em> (Lesson 04).
+          </p>
+        </div>
+
+        <h3>Step 1 — The aggregate: one unit of change</h3>
+        <p>
+          <strong>In plain words:</strong> an aggregate is a group of objects
+          that must change together, like one single thing.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> an aggregate is a cluster of
+          associated objects treated as a single consistency boundary:
+          invariants apply to the whole cluster, and the cluster changes as one
+          unit. It is not a folder, a database table, or every object that
+          shares a noun.
+        </p>
+        <p>
+          <strong>The analogy — the checkout cart:</strong> the cart, its items,
+          prices, and quantities change as one unit. You do not reach into the
+          cart to change a price — you ask the cart. The cart refuses impossible
+          states (negative quantity) — that is invariant enforcement.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A cart is a physical container: the items are literally inside it.
+            In code, the aggregate boundary is a <em>rule</em>, not a container
+            — related classes can live in different files and still belong to
+            one aggregate, and classes in the same folder can belong to
+            different ones.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="An aggregate is one consistency boundary: its objects change together and its invariants protect the whole cluster. Folders are physical organization; tables are storage — neither defines a consistency boundary."
+        >
+          <p class="quiz-question">What is an aggregate?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> One consistency boundary for
+                related objects.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A folder grouping all related
+                files.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A table storing every related
+                record.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — The aggregate root: the one door</h3>
+        <p>
+          <strong>In plain words:</strong> the aggregate root is the single door
+          into the group — nobody touches the parts except through the root.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> the aggregate root is the
+          identity-bearing entry point of the aggregate; outside code must
+          interact with the group through it, never by changing interior objects
+          directly.
+        </p>
+        <p>
+          <strong>The analogy — the castle gate:</strong> visitors enter the
+          castle only through the gate; guards inside enforce the rules. The
+          root carries identity (the castle's name) and the guards enforce
+          invariants (no invaders). Alternatively, think of a tree: the trunk is
+          the only way in; branches and leaves change through it.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A castle gate is obvious and physical; in code, nothing prevents a
+            careless import from touching an interior object directly. The root
+            is a convention protected by discipline and tests, not by walls.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="The root guards the boundary so invariants are enforced on every change. Locking folders or owning connections is storage/plumbing talk — the root's job is consistency, not housekeeping."
+        >
+          <p class="quiz-question">Why must changes go through the root?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> It protects invariants inside
+                the boundary.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> It locks files inside its
+                folder.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> It owns every connection to
+                storage.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — Errors versus warnings</h3>
+        <p>
+          <strong>In plain words:</strong> an invariant failure is an error —
+          the change is rejected. A warning is a notice — the change succeeds,
+          but with a flag.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> an error means the boundary
+          refused the operation because an invariant would break; a warning
+          means the operation completed but an important condition deserves
+          attention. Confusing the two changes behavior silently.
+        </p>
+        <p>
+          <strong>The analogy:</strong> a checkout. If you try to buy a negative
+          quantity, the register refuses — error. If you buy the last item in
+          stock, the cashier says "only one left" — warning: the sale still
+          happens. In Astralia, a nonexistent local time (DST gap) is an error
+          (<code>NonexistentTimeError</code>); an ambiguous time is a warning
+          (<code>dst-ambiguous</code>), and a missing birth time produces the
+          <code>whole-sign</code> warning.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A cashier's warning is spoken once and forgotten. Code warnings
+            travel with the result (Astralia returns
+            <code>WarningCode[]</code>), and they must be mapped to the user —
+            if nobody reads the warning, the user never learns their houses are
+            approximate.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          The AI drill at the end will ask me to "turn BirthData.vo.ts into an
+          aggregate root". Before I can judge that, I need evidence. Read with
+          me three files:
+          <a href="../src/domain/birth/BirthData.vo.ts"
+            ><code>src/domain/birth/BirthData.vo.ts</code></a
+          >,
+          <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+            ><code>src/domain/birth/ports/IBirthDataRepository.ts</code></a
+          >, and
+          <a href="../src/application/birth/SaveBirthData.ts"
+            ><code>src/application/birth/SaveBirthData.ts</code></a
+          >.
+        </p>
+        <p>
+          <em
+            >"First I ask the four aggregate questions. What must be valid
+            together? Everything BirthData.create() checks at once: date range,
+            coordinates, timezone, plus the DST policy in SaveBirthData. That is
+            a real consistency cluster. What has identity across saves? The
+            persisted record has an id — but the file is a .vo.ts with a private
+            constructor and no identity-based equals(). Who controls changes?
+            SaveBirthData orchestrates, but it is an application service, not a
+            domain root. What does the repository load/save? Whole BirthData
+            records."</em
+          >
+        </p>
+        <p>
+          <em
+            >"Now the crucial honest conclusion. BirthData.vo.ts is a Value
+            Object by its code convention — it is not automatically an aggregate
+            root. IBirthDataRepository is evidence of a persistence port, not
+            proof of a root. The persisted birth-data record is a candidate
+            boundary only if identity and lifecycle can be demonstrated — and
+            today, that demonstration is missing."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> a repository makes an aggregate
+          <em>plausible</em> — something is being persisted as a unit — but it
+          does not <em>prove</em> a root. Proof needs identity, lifecycle, and
+          invariants owned by one domain object.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three questions toward the aggregate boundary card, with less help
+          each time. Answer before opening the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> What must be valid together for
+          a birth data record in Astralia?
+        </p>
+        <p>
+          <em>My reasoning:</em> I read BirthData.create() and SaveBirthData. A
+          record is valid only when the whole cluster passes at once: date
+          between 1800 and today, latitude -90..90, east-positive longitude,
+          valid IANA timezone, and the UT conversion gate — a nonexistent local
+          time is rejected, an ambiguous one warns. Those validations belong to
+          one boundary, so this cluster is a candidate aggregate.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            The invariants enforced together in
+            <code>BirthData.create()</code> plus the DST policy in
+            <code>SaveBirthData</code>: date range, coordinates, timezone, and
+            the nonexistent/ambiguous UT gate. That is the consistency cluster.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Does the existence of
+          <code>IBirthDataRepository</code> prove an aggregate root?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> the repository is a persistence
+          port — it says "records are loaded and saved". But a root needs
+          identity, a lifecycle, and owned invariants. Complete the thought: a
+          port proves a ______ boundary, not a ______ root.
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            No. The port proves a persistence boundary — something is stored as
+            a unit. It does not prove a root: identity and lifecycle have not
+            been demonstrated. Repository evidence alone is exactly the trap the
+            AI drill targets.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Are
+          <code>whole-sign</code> and <code>dst-ambiguous</code> errors or
+          warnings, and how do you know?
+        </p>
+        <p>
+          <em>Start:</em> look at the return type in SaveBirthData — the output
+          is <code>{ ok: true; data; warnings }</code>. Now complete the last
+          step: because the save still succeeds and the codes travel inside a
+          ______ array next to <code>ok: true</code>, they are ______ — whereas
+          a nonexistent local time returns <code>ok: false</code>, so it is an
+          ______.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            Warnings. The save succeeds with <code>ok: true</code> and returns
+            them in <code>warnings: WarningCode[]</code>. A nonexistent time
+            returns <code>ok: false</code> with an error — that is the error
+            case. The type signature is the evidence.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Write an <strong>aggregate boundary card</strong> for the persisted
+          birth-data record. Reopen the three files and answer each row in your
+          notebook. Do not edit the repository.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Aggregate boundary card — persisted birth data
+            </caption>
+            <thead>
+              <tr>
+                <th>Question</th>
+                <th>Answer (with evidence)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>What must be valid together?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>What has identity across saves?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Which object controls changes?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>What does the repository load/save?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Which outcomes are errors vs warnings?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Then write the crucial conclusion as an
+          <strong>accept/veto statement</strong>:
+        </p>
+        <p class="flow">
+          "BirthData.vo.ts is a Value Object by convention, not an aggregate
+          root. IBirthDataRepository proves a persistence port, not a root. The
+          persisted record is a candidate boundary only if identity and
+          lifecycle are demonstrated — current evidence: __________."
+        </p>
+        <p>Hints:</p>
+        <ul>
+          <li>
+            Reuse your Lesson 01 card: the concept is BirthData; the rules are
+            the invariants; the mechanisms are the repository and converter.
+          </li>
+          <li>
+            The whole-sign and dst-ambiguous outcomes are warnings — the save
+            succeeds; the nonexistent-time outcome is an error.
+          </li>
+          <li>
+            If you cannot fill a row with evidence, write "not demonstrated" —
+            that is a valid and valuable answer.
+          </li>
+        </ul>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A precise accept/veto statement you can hand to the AI: "prove
+            identity and lifecycle, or do not call it an aggregate root."
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "An aggregate is a consistency boundary; its root is the one door —
+            I can name the four evidence questions."
+          </li>
+          <li>
+            "BirthData.vo.ts is a VO, not automatically a root; the repository
+            proves a port, not a root."
+          </li>
+          <li>
+            "whole-sign and dst-ambiguous are warnings; a nonexistent time is an
+            error — the type signature proves it."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the cart analogy breaks (recap):</strong> the boundary
+          is a rule, not a container; nothing physical prevents violations, so
+          discipline and tests must guard it.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> the repository port we keep meeting is
+          half of a bigger pattern — contracts inward, technology outward
+          (ports, adapters, repository).
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "What proves an
+          aggregate root? — Identity, lifecycle, and owned invariants; a
+          repository alone proves nothing."
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant:
+          <em>"Turn BirthData.vo.ts into an aggregate root."</em> Require it to
+          prove identity and invariants — a real id with a lifecycle, and
+          invariants owned by the root. Then reject the proposal if it only
+          cites the filename or the repository as evidence. If it cannot show
+          identity/lifecycle, the correct conclusion is: "the current map does
+          not prove a BirthData aggregate; here is the evidence I need."
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="An aggregate protects invariants inside one consistency boundary — that is its job. Storing every related object together describes physical grouping; equaling one value object confuses aggregate with value object. In Astralia, the birth-data cluster is a candidate boundary, but no root is proven yet."
+        >
+          <p class="quiz-question">What is an aggregate?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> An aggregate protects
+                invariants inside one boundary.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> An aggregate stores every
+                related object together.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> An aggregate always equals
+                one value object.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 7 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Fowler, "DDD Aggregate" (a cluster treated as a single unit; the
+            root; transactions do not cross boundaries) —
+            <a href="https://martinfowler.com/bliki/DDD_Aggregate.html"
+              >martinfowler.com/bliki/DDD_Aggregate.html</a
+            >.
+          </li>
+          <li>
+            Evans, DDD Reference (official materials) —
+            <a href="https://www.domainlanguage.com/ddd/reference/"
+              >domainlanguage.com/ddd/reference/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Aggregate</em>, <em>Aggregate root</em>,
+            <em>Invariant</em>).
+          </li>
+          <li>
+            Local files:
+            <a href="../src/domain/birth/BirthData.vo.ts"
+              ><code>BirthData.vo.ts</code></a
+            >,
+            <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+              ><code>IBirthDataRepository.ts</code></a
+            >,
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>SaveBirthData.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-03.md"
+            ><code>learning-records/session-03.md</code></a
+          >: cold recall, aggregate boundary card, judged AI proposal (the "turn
+          it into a root" drill), verdict with evidence, confidence (1-5) and
+          unresolved question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 05 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="04-entity-vs-value-object.html"
+          >Lesson 04 — Entity vs value object</a
+        >
+        · Next:
+        <a href="06-ports-adapters-repository.html"
+          >Lesson 06 — Ports, adapters, repository</a
+        >
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

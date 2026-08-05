@@ -1,0 +1,550 @@
+/* ============================================================================
+   Astralia · DDD Curriculum — shared lesson stylesheet
+   Tufte-inspired: clean serif typography, generous margins, quiet color.
+   Dark/light friendly via prefers-color-scheme. Print-friendly.
+   ============================================================================ */
+
+:root {
+  /* Light palette (Tufte-ish paper) */
+  --bg: #fffff8;
+  --bg-alt: #f4f1e8;
+  --ink: #1a1a1a;
+  --ink-soft: #44443c;
+  --ink-faint: #6a6a5f;
+  --rule: #d8d5c9;
+  --accent: #9a3b26; /* terracotta — headings, links, emphasis */
+  --accent-soft: #f3e2db;
+  --accent-ink: #7c2d1b;
+  --good: #1e6b3a; /* correct answer */
+  --good-bg: #e4efe6;
+  --bad: #9b2c2c; /* wrong answer */
+  --bad-bg: #f5e3e3;
+  --code-bg: #f4f1e8;
+  --code-ink: #2b2b26;
+  --callout-border: #cfc9b8;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --serif: 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161512;
+    --bg-alt: #1f1d18;
+    --ink: #e8e6df;
+    --ink-soft: #c0beb2;
+    --ink-faint: #8f8d80;
+    --rule: #3a382f;
+    --accent: #d9836a;
+    --accent-soft: #3a2a23;
+    --accent-ink: #eaa28c;
+    --good: #7cc494;
+    --good-bg: #1e2e24;
+    --bad: #e08a8a;
+    --bad-bg: #33201f;
+    --code-bg: #201e19;
+    --code-ink: #d8d6cc;
+    --callout-border: #4a473c;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* ---------- Base ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+}
+
+body {
+  margin: 0;
+  padding: 2rem 1.25rem 4rem;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+main,
+header.masthead,
+footer.mastfoot {
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  margin: 0 0 0.6rem;
+}
+
+h1 {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+h2 {
+  font-size: 1.4rem;
+  margin-top: 2.6rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+h3 {
+  font-size: 1.12rem;
+  color: var(--ink-soft);
+}
+
+p {
+  margin: 0.6rem 0;
+}
+
+a {
+  color: var(--accent-ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+strong {
+  font-weight: 600;
+}
+
+em {
+  font-style: italic;
+}
+
+/* ---------- Masthead ---------- */
+
+.masthead {
+  padding-top: 1rem;
+  border-top: 4px solid var(--accent);
+}
+
+.kicker {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  margin: 0 0 0.6rem;
+}
+
+.masthead .subtitle {
+  font-size: 1.06rem;
+  color: var(--ink-soft);
+  margin-top: 0.2rem;
+}
+
+.mastfoot {
+  margin-top: 3rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+}
+
+/* ---------- Sections ---------- */
+
+section {
+  margin-top: 1.8rem;
+}
+
+.meta-line {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+
+/* ---------- Retrieval prompt (blank-page recall) ---------- */
+
+.retrieval {
+  background: var(--bg-alt);
+  border: 1px dashed var(--rule);
+  border-radius: 4px;
+  padding: 0.9rem 1.1rem;
+}
+
+.retrieval summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+.retrieval .timer {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+/* ---------- Code and file paths ---------- */
+
+code,
+.file-path {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+
+/* ---------- Callouts ---------- */
+
+.callout {
+  border: 1px solid var(--callout-border);
+  border-left-width: 5px;
+  border-radius: 4px;
+  padding: 0.9rem 1.1rem;
+  margin: 1.3rem 0;
+  background: var(--bg-alt);
+}
+
+.callout .callout-title {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.4rem;
+  color: var(--ink-faint);
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.callout--exercise {
+  border-left-color: var(--accent);
+}
+
+.callout--drill {
+  border-left-color: #7a6a1f;
+}
+
+.callout--drill .callout-title {
+  color: #7a6a1f;
+}
+
+@media (prefers-color-scheme: dark) {
+  .callout--drill {
+    border-left-color: #c9b458;
+  }
+
+  .callout--drill .callout-title {
+    color: #c9b458;
+  }
+}
+
+.callout--remember {
+  border-left-color: #2c6e91;
+}
+
+.callout--remember .callout-title {
+  color: #2c6e91;
+}
+
+@media (prefers-color-scheme: dark) {
+  .callout--remember {
+    border-left-color: #6db5dd;
+  }
+
+  .callout--remember .callout-title {
+    color: #6db5dd;
+  }
+}
+
+.callout--checkpoint {
+  border-left-color: var(--good);
+}
+
+.callout--checkpoint .callout-title {
+  color: var(--good);
+}
+
+/* ---------- Tables (exercise cards) ---------- */
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 1.1rem 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+caption {
+  caption-side: top;
+  text-align: left;
+  font-style: italic;
+  color: var(--ink-faint);
+  padding-bottom: 0.4rem;
+}
+
+th,
+td {
+  border: 1px solid var(--rule);
+  padding: 0.5rem 0.65rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+th {
+  background: var(--bg-alt);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+td.empty-cell {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+/* ---------- Context map boxes (lesson 02) ---------- */
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0;
+}
+
+.context-box {
+  border: 1px solid var(--rule);
+  border-top: 4px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  padding: 0.8rem 1rem;
+}
+
+.context-box h3 {
+  margin-top: 0;
+  color: var(--accent-ink);
+  font-size: 1.05rem;
+}
+
+.context-box ul {
+  margin: 0.4rem 0 0.4rem 1.1rem;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.context-box li {
+  margin: 0.25rem 0;
+}
+
+.flow {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  background: var(--code-bg);
+  border-radius: 3px;
+  padding: 0.5rem 0.7rem;
+  margin: 0.7rem 0 0.2rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* ---------- Quiz ---------- */
+
+.quiz {
+  margin: 1.3rem 0;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--callout-border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+}
+
+.quiz .quiz-question {
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin: 0 0 0.8rem;
+}
+
+.quiz .quiz-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.quiz .quiz-options li {
+  margin: 0.5rem 0;
+}
+
+.quiz .quiz-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--serif);
+  font-size: 0.94rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.quiz .quiz-option:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.quiz .quiz-option:disabled {
+  cursor: default;
+}
+
+.quiz .quiz-option.is-correct {
+  border-color: var(--good);
+  background: var(--good-bg);
+}
+
+.quiz .quiz-option.is-wrong {
+  border-color: var(--bad);
+  background: var(--bad-bg);
+}
+
+.quiz .quiz-letter {
+  display: inline-block;
+  min-width: 1.5em;
+  font-family: var(--mono);
+  font-size: 0.8em;
+  color: var(--ink-faint);
+}
+
+.quiz .quiz-option.is-correct .quiz-letter {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.quiz .quiz-option.is-wrong .quiz-letter {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.quiz .quiz-feedback {
+  margin: 0.9rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.quiz .quiz-feedback.is-visible {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.7rem;
+}
+
+.quiz .quiz-feedback .verdict {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.quiz .quiz-feedback .verdict.is-good {
+  color: var(--good);
+}
+
+.quiz .quiz-feedback .verdict.is-bad {
+  color: var(--bad);
+}
+
+/* ---------- Sources & footer ---------- */
+
+.sources ul {
+  margin: 0.4rem 0;
+  padding-left: 1.2rem;
+}
+
+.sources li {
+  margin: 0.3rem 0;
+}
+
+/* ---------- Print ---------- */
+
+@media print {
+  html {
+    font-size: 12pt;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    padding: 0.5in;
+  }
+
+  .retrieval,
+  .callout,
+  .context-box,
+  .quiz {
+    background: #fff;
+    border-color: #999;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .quiz .quiz-option {
+    border: 1px solid #666;
+  }
+
+  .quiz .quiz-option.is-correct {
+    background: #e4efe6;
+  }
+
+  .quiz .quiz-option.is-wrong {
+    background: #f5e3e3;
+  }
+
+  section {
+    break-inside: avoid;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: #444;
+  }
+}

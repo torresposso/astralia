@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 01 — The Domain Model: The Map of the Problem · Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 1 · Lesson 01</p>
+      <h1>The domain model: the map of the problem</h1>
+      <p class="subtitle">
+        Before writing code, you have to name things. This lesson teaches you to
+        distinguish the <em>domain model</em> from the technology that
+        implements it.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          You are asked to draw the map of a city you have never visited. What
+          do you put on it? Streets? Buildings? Parks? What do you
+          <em>leave out</em> — every car? every streetlight? every cable under
+          the pavement?
+        </p>
+        <p>
+          A good map is not a copy of the city. It is a
+          <strong>deliberate simplification</strong>: it keeps what a traveler
+          needs and drops the noise. Now imagine your product as the city, and
+          your code as the map. Most codebases fail because they draw
+          <em>everything</em> — databases, HTTP routes, libraries — and forget
+          to draw what the business means.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will know what a
+          <strong>domain model</strong> is, and you will be able to ask the AI:
+          "What business concept or rule does this change represent?"
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>
+            This is the first lesson, so instead of recalling previous material,
+            check what you already know. Close this page and write, without
+            looking:
+          </p>
+          <ul>
+            <li>
+              What do you think "domain model" means right now, in your own
+              words?
+            </li>
+            <li>
+              What is the difference between a business concept and a technical
+              mechanism? Give one example of each from a web app you know.
+            </li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 4</p>
+          <ul>
+            <li>
+              <strong>Domain</strong> — the problem space the business cares
+              about.
+            </li>
+            <li>
+              <strong>Domain model</strong> — the code-level map of that
+              problem.
+            </li>
+            <li>
+              <strong>Business rule</strong> — a rule the business must always
+              obey.
+            </li>
+            <li>
+              <strong>Technical mechanism</strong> — how something is done
+              (database, HTTP, library), not what it means.
+            </li>
+          </ul>
+        </div>
+
+        <h3>Step 1 — The domain: what the business cares about</h3>
+        <p>
+          <strong>In plain words:</strong> the domain is the part of the real
+          world your app must understand — not the computer stuff, just the
+          business stuff.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> the domain is the problem space
+          that matters to the business: the concepts, rules, and relationships
+          the application must model, independent of the technology used to
+          build it.
+        </p>
+        <p>
+          <strong>The analogy:</strong> a bakery's domain is flour, ovens, and
+          recipes. The color of the delivery van is not part of the bakery's
+          domain. Astralia's domain is users, birth data, and natal charts — not
+          Turso, Drizzle, or HTTP.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A bakery <em>could</em> become a delivery business later, and then
+            the van becomes part of its world. Domains are not fixed for
+            eternity: they are a choice about what matters now.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Astralia's domain is the business meaning: users, birth data, and natal charts. TypeScript/Drizzle/Astro are technology, not domain. A domain model hides databases and HTTP, like a map hides cars and cables."
+        >
+          <p class="quiz-question">What is the domain of Astralia?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Users, birth data, and natal
+                charts.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Types, routes, tables, and
+                HTTP files.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Drizzle, Turso, Astro, and
+                Caelus code.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — The domain model: a deliberate map</h3>
+        <p>
+          <strong>In plain words:</strong> a domain model is the map of the
+          business written in code: the important concepts, how they relate, and
+          the rules that govern them.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a domain model is a deliberate,
+          simplified representation of the concepts, relationships, and rules of
+          the problem space; it is not a database schema, a framework diagram,
+          or a list of HTTP endpoints.
+        </p>
+        <p>
+          <strong>The analogy — the city map:</strong> streets are relationships
+          between things, landmarks are the important objects (your future
+          entities and value objects), traffic laws are business rules. A map
+          hides cars, traffic lights, and wiring — it only keeps what a traveler
+          needs. The domain model hides databases and HTTP the same way.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A paper map never changes; a domain model changes every time the
+            business changes a rule. Also, a map is drawn by a cartographer from
+            outside — your model is written by people inside the business, so it
+            can be wrong in ways a map rarely is.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="The domain model holds business concepts, rules, and relationships. Database tables describe persistence (a mechanism), and framework files describe code structure — neither is the model."
+        >
+          <p class="quiz-question">What does a domain model contain?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Business concepts, rules, and
+                relationships.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Database tables, columns, and
+                indexes.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Framework files, functions,
+                and routes.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — Business rules: the laws of the map</h3>
+        <p>
+          <strong>In plain words:</strong> a business rule is a law the business
+          always obeys, no matter what — and the model must enforce it.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a business rule (or invariant) is
+          a constraint that must remain true at a consistency boundary;
+          validating it is part of the model, not of the database or the HTTP
+          layer.
+        </p>
+        <p>
+          <strong>The analogy:</strong> traffic laws on the map — a street is
+          one-way, a bridge closes at night. Astralia's rules include: the birth
+          date must be between 1800-01-01 and today; latitude must be between
+          -90 and 90; an hour that never existed (DST spring-forward) is an
+          error.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Traffic laws are enforced by police from outside. In code, the rule
+            must be enforced <em>by the model itself</em> — otherwise a future
+            AI change can quietly skip it.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A date rule is business meaning — it lives in the model. Using a specific ORM or returning a specific response format are technical mechanisms: how, not what."
+        >
+          <p class="quiz-question">Which is a business rule in Astralia?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Birth dates must be before
+                today.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Tables must use the Drizzle
+                ORM.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Routes must return JSON
+                status codes.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will read one real Astralia file out loud and classify what I see
+          into <strong>business concept</strong>, <strong>rule</strong>, or
+          <strong>technical mechanism</strong>. Follow my reasoning; later you
+          will do the same.
+        </p>
+        <p>
+          Read with me:
+          <a href="../src/application/birth/SaveBirthData.ts"
+            ><code>src/application/birth/SaveBirthData.ts</code></a
+          >.
+        </p>
+        <p>
+          <em
+            >"First I look at the class name: SaveBirthData. A verb — an action,
+            not a thing. I will decide what it is later. Next I look at the
+            constructor: it receives a repository and a utConverter, and both
+            are <strong>interfaces</strong>. That is interesting: this file does
+            not import Drizzle or Caelus directly; it receives capabilities. Now
+            I read the save() method step by step.
+          </em>
+        </p>
+        <ul>
+          <li>
+            <em
+              >"Step 1: for updates it verifies existence and ownership — a
+              business rule (only the owner can change their data)."</em
+            >
+          </li>
+          <li>
+            <em
+              >"Step 2: BirthData.create(...) validates all invariants — date,
+              time, coordinates, timezone. <strong>Rule</strong>. The comment
+              says 'Validate all invariants via the BirthData value
+              object'."</em
+            >
+          </li>
+          <li>
+            <em
+              >"Step 3: utConverter.convert(birthData) — this is a
+              <strong>mechanism</strong>: the local→UT conversion is done by the
+              Caelus library somewhere else. The rule here is the DST policy:
+              'nonexistent' is rejected, 'ambiguous' produces a warning."</em
+            >
+          </li>
+          <li>
+            <em
+              >"Step 4: repository.create/update — <strong>mechanism</strong>:
+              persistence. Step 5: if the saved record has no time, push a
+              'whole-sign' warning — <strong>rule</strong>."</em
+            >
+          </li>
+        </ul>
+        <p>
+          <strong>What I noticed:</strong> the file is a mix — it orchestrates
+          mechanisms but the decisions it makes (existence, DST policy, whole
+          sign) are business meaning. That is exactly the boundary this course
+          teaches: <em>what it means</em> vs <em>how it is done</em>.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three questions, with less help each time. Answer before opening the
+          suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Open
+          <a href="../src/domain/birth/BirthData.vo.ts"
+            ><code>src/domain/birth/BirthData.vo.ts</code></a
+          >. The method <code>create()</code> validates the date range, the
+          coordinates, and the timezone. Question: is <code>create()</code> a
+          concept, a rule, or a mechanism?
+        </p>
+        <p>
+          <em>My reasoning:</em> it takes plain values and either returns a
+          BirthData or an error. It does not touch a database or an HTTP
+          request. It is enforcing what must be true — that makes it a
+          <strong>rule</strong> (specifically, the place where invariants live).
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Rule. <code>BirthData.create()</code> is the enforcement point of
+            the model's invariants; the error it returns is the law refusing an
+            illegal state.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Open
+          <a href="../src/infrastructure/birth/DrizzleBirthDataRepository.ts"
+            ><code
+              >src/infrastructure/birth/DrizzleBirthDataRepository.ts</code
+            ></a
+          >. It imports a database, builds SQL-style queries with Drizzle, and
+          writes rows. Question: is this concept, rule, or mechanism?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> look at what it imports — the first
+          import is the db client… and then ask yourself: does any business
+          decision happen here, or is it just moving bytes?
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            Mechanism. It implements persistence (Turso + Drizzle). The business
+            decision — "is this birth data valid?" — already happened before
+            this file ran; this file only stores the result.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Open
+          <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+            ><code>src/domain/birth/ports/IBirthDataRepository.ts</code></a
+          >. It is an interface: <code>create</code>, <code>findById</code>,
+          <code>update</code>, <code>delete</code>. Question: is this concept,
+          rule, or mechanism?
+        </p>
+        <p>
+          <em>Start:</em> the interface itself performs no work — it describes a
+          capability. Now complete the last step: the interface is owned by the
+          domain and uses the domain's own type (<code>BirthData</code>), so the
+          <em>capability</em> is part of the ______, while the implementation in
+          infrastructure is a ______.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            The capability contract is part of the <strong>model</strong> (it
+            speaks the business language: "give me BirthData", "save
+            BirthData"). The implementation —
+            <code>DrizzleBirthDataRepository</code> — is the
+            <strong>mechanism</strong>. This split is the heart of Lesson 06.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          For the goal <strong>"save birth data"</strong>, build a three-column
+          card separating model from mechanism. Read these four real files:
+        </p>
+        <ul class="sources">
+          <li>
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>src/application/birth/SaveBirthData.ts</code></a
+            >
+            — the application that orchestrates the save
+          </li>
+          <li>
+            <a href="../src/domain/birth/BirthData.vo.ts"
+              ><code>src/domain/birth/BirthData.vo.ts</code></a
+            >
+            — the domain Value Object
+          </li>
+          <li>
+            <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+              ><code>src/domain/birth/ports/IBirthDataRepository.ts</code></a
+            >
+            — the persistence contract
+          </li>
+          <li>
+            <a href="../src/infrastructure/birth/CaelusBirthConverter.ts"
+              ><code>src/infrastructure/birth/CaelusBirthConverter.ts</code></a
+            >
+            — a mechanism (conversion to UT)
+          </li>
+        </ul>
+        <p>
+          Fill the card in your notebook (or copy the table). Do not edit the
+          repository.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Card: "save birth data"
+            </caption>
+            <thead>
+              <tr>
+                <th>Business concept</th>
+                <th>Rule or invariant</th>
+                <th>Technical mechanism</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="empty-cell">
+                  (e.g., BirthData — a user's birth data)
+                </td>
+                <td class="empty-cell">
+                  (e.g., the date must be between 1800-01-01 and today)
+                </td>
+                <td class="empty-cell">
+                  (e.g., Turso + Drizzle store the record)
+                </td>
+              </tr>
+              <tr>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints so you don't get it wrong:</p>
+        <ul>
+          <li>
+            <strong>Concepts:</strong> <code>BirthData</code>, the user who owns
+            the data, date/time/place of birth.
+          </li>
+          <li>
+            <strong>Rules (invariants):</strong> date validation,
+            latitude/longitude, IANA timezone; the DST policy (nonexistent hour
+            → error, ambiguous hour → warning <code>dst-ambiguous</code>); the
+            <code>whole-sign</code> notice when there is no time.
+          </li>
+          <li>
+            <strong>Mechanisms:</strong> Turso/Drizzle (persistence), HTTP and
+            the API route (<code>src/pages/api/birth-data/create.ts</code>), the
+            <code>caelus-birth</code> package inside
+            <code>CaelusBirthConverter</code> (local → UT conversion).
+          </li>
+        </ul>
+        <p>
+          If something doesn't fit in any column, ask yourself: is this
+          <em>what it means</em> or <em>how it is done</em>? The UT conversion
+          is a mechanism; the rule "the local time must be converted to UT to
+          calculate the chart" is part of the model.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A one-page <em>domain vs mechanism</em> map you can show the AI
+            before asking for any change — proof that you can see the map behind
+            the code.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "The domain is what the business means; the model is its map in
+            code."
+          </li>
+          <li>
+            "A business rule belongs in the model — I can point to
+            <code>BirthData.create()</code> as evidence."
+          </li>
+          <li>
+            "Drizzle, Turso, HTTP, and Caelus are mechanisms — how it is done,
+            not what it means."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the city-map analogy breaks (recap):</strong> maps don't
+          change and are drawn from outside; models change with the business and
+          are written by insiders, so they can be wrong. Treat every model with
+          evidence, not faith.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> the same word can mean different things
+          in different parts of the system — we draw borders around meanings
+          (bounded context).
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "When the AI proposes a
+          change, what is the first question you ask? — 'What business concept
+          or rule does this change represent?'"
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant:
+          <em
+            >"Summarize the goal of <code>SaveBirthData</code> in Astralia."</em
+          >
+          Then underline in its answer every sentence that names a
+          <strong>business concept</strong> and every sentence that names an
+          <strong>implementation detail</strong> (framework, database, HTTP,
+          library). If the AI does not distinguish the two levels, that is
+          exactly the problem DDD solves: the machine mixes the map with the
+          territory.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A domain model is a map of business concepts and rules: what the problem means and which rules govern it. “A list of framework files and functions” describes the code structure, not the model. “A diagram of database tables and endpoints” describes persistence, which is a mechanism. In Astralia, BirthData.vo.ts validates rules (date, time, coordinates) and that is model; Turso/Drizzle and HTTP are mechanisms."
+        >
+          <p class="quiz-question">What is a domain model?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> A map of business concepts
+                and rules.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A list of framework files and
+                functions.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A diagram of database tables
+                and endpoints.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 7 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Primary source: Eric Evans, official Domain-Driven Design materials
+            —
+            <a href="https://www.domainlanguage.com/ddd/"
+              >domainlanguage.com/ddd/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Domain</em>, <em>Domain model</em>,
+            <em>Value object</em>, <em>Invariant</em>).
+          </li>
+          <li>
+            Local files read in this lesson:
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>SaveBirthData.ts</code></a
+            >,
+            <a href="../src/domain/birth/BirthData.vo.ts"
+              ><code>BirthData.vo.ts</code></a
+            >,
+            <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+              ><code>IBirthDataRepository.ts</code></a
+            >,
+            <a href="../src/infrastructure/birth/CaelusBirthConverter.ts"
+              ><code>CaelusBirthConverter.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-01.md"
+            ><code>learning-records/session-01.md</code></a
+          >: cold recall, card artifact, judged AI proposal, verdict with
+          evidence, confidence (1-5), unresolved question and next review date.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 01 of 10</p>
+      <p class="meta-line">
+        Next: <a href="02-bounded-context.html">Lesson 02 — Bounded context</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

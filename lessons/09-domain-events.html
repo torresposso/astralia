@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 09 — Domain Events: The Domain Tells the World · Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 5 · Lesson 09</p>
+      <h1>Domain events: the domain tells the world</h1>
+      <p class="subtitle">
+        The business rules do not shout into a void — they publish what
+        happened, and anyone who cares may listen.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          You marry two people. The news of the wedding does not happen inside
+          the couple alone — it spreads: invitations were sent, the newspaper
+          prints the announcement, relatives update their plans. The marriage
+          itself did not need to know every guest's reaction; it simply
+          <em>happened</em>, and the world reacted.
+        </p>
+        <p>
+          Domain events are exactly that: "something important happened" — a
+          past-tense fact the domain publishes, without knowing who listens. In
+          Astralia the domain already computes facts like
+          <code>dst-ambiguous</code> warnings; this lesson designs the events
+          that would tell the rest of the system.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to design a domain event on
+          paper — Given/When/Then, past tense, immutable, published without
+          knowing its subscribers.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What is the invariant guard of <code>BirthData.create()</code>?
+              (Lesson 05)
+            </li>
+            <li>
+              Who coordinates a user goal, and who decides the rules? (Lesson
+              07)
+            </li>
+            <li>Which direction must every import edge point? (Lesson 08)</li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 3</p>
+          <ul>
+            <li>
+              <strong>Domain event</strong> — a past-tense fact about what
+              happened in the domain.
+            </li>
+            <li>
+              <strong>Publisher / Subscriber</strong> — the event's source and
+              its (unknown) listeners.
+            </li>
+            <li>
+              <strong>Event name</strong> — a past-participle phrase, e.g.,
+              <code>BirthDataSaved</code>.
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">TS basics — a record is a box of data</p>
+          <p>
+            A TypeScript object is a box of named values. A domain event is a
+            frozen box: a name (past tense) plus the facts, with no methods that
+            mutate it. If you have used
+            <code>as const</code> or a readonly type, you already know the
+            shape.
+          </p>
+        </div>
+
+        <h3>Step 1 — A fact, not a command</h3>
+        <p>
+          <strong>In plain words:</strong> a domain event says "this already
+          happened" — it never tells anyone what to do.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a domain event is an immutable,
+          past-tense record of something that happened in the domain, published
+          by its source without knowing who, if anyone, subscribes to it (after
+          Fowler's classic definition).
+        </p>
+        <p>
+          <strong>The analogy — the newspaper headline:</strong> the newspaper
+          prints "Bridge Reopened After Repairs" — it does not print "Commuters,
+          please now cross". The fact is published; readers decide what to do.
+          An event is a headline, not an instruction.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A newspaper knows its readers exist and can be asked to subscribe; a
+            domain event is published to zero or many listeners, and the
+            publisher never learns their names. Also, events in code must carry
+            the facts (ids, timestamps), not ink.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A domain event records that something important already happened — past tense, immutable fact. It is not a command telling a subscriber what to do, and it is not a database write."
+        >
+          <p class="quiz-question">What is a domain event?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> A record that something
+                important already happened.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A command telling subscribers
+                what to do.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A database write that stores
+                final state.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — The event name is past tense</h3>
+        <p>
+          <strong>In plain words:</strong> name events like headlines:
+          <code>BirthDataSaved</code>, <code>DstAmbiguousWarningRaised</code> —
+          done, not requested.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> an event name is a
+          past-participle phrase describing the fact the domain publishes; the
+          event carries the data needed by subscribers (aggregate id, values,
+          timestamp), never internal implementation details.
+        </p>
+        <p>
+          <strong>The analogy — the wedding invitation (from the hook):</strong>
+          the invitation says "the marriage took place" (fact) and lists who,
+          where, when — not "please arrange the chairs". The invitation is
+          printed once and sent to many; the couple does not track every guest.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Invitations are sent to a known guest list; events are published to
+            an unknown audience. Also, an invitation is paper — events are
+            immutable records that subscribers may read long after publishing.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Immutable data plus past tense are the signature of a domain event. The event carries facts for subscribers; a mutable command object is the opposite shape."
+        >
+          <p class="quiz-question">Which shape fits an event?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Immutable data named in the
+                past tense.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Mutable state with methods to
+                change it.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A free-text log message for
+                the humans.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — Publish without knowing subscribers</h3>
+        <p>
+          <strong>In plain words:</strong> the source records the fact and walks
+          away. If nobody listens, the world still moved; if many listen, the
+          source does not care.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> the publisher emits the event and
+          holds no reference to subscribers; subscribers receive a copy and
+          react (send an email, update a projection, trigger a process).
+          Decoupling is the point: changing who listens never changes the
+          publisher.
+        </p>
+        <p>
+          <strong>The analogy — Fowler's credit-card story:</strong> a bank
+          processes a charge; the fact "the charge happened" is recorded. Other
+          systems react — fraud check, accounting, receipts — but the charge
+          processing does not call each one by name.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Credit-card systems often need strong guarantees (the fraud check
+            must run); a naive event pub/sub gives none. Events buy decoupling,
+            not delivery guarantees — the guarantees are a separate design
+            decision.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will design two domain events for Astralia on paper, out loud, with
+          Given/When/Then. Follow the reasoning; you will design one event
+          yourself.
+        </p>
+        <p>
+          <em
+            >"Event 1: BirthDataSaved. Given a valid birth data that passes the
+            invariant guard; when SaveBirthData persists through
+            IBirthDataRepository; then the domain publishes BirthDataSaved with
+            the id, the normalized values, and a timestamp. Past tense, frozen
+            fields, no methods. It does not say 'send a welcome email' — it says
+            'a birth record was saved'."</em
+          >
+        </p>
+        <p>
+          <em
+            >"Event 2: DstAmbiguousWarningRaised. Given birth data in a local
+            time that the UT converter marks 'ambiguous'; when SaveBirthData
+            applies the DST policy; then the domain publishes
+            DstAmbiguousWarningRaised with the warning code, the date, and the
+            timestamp. WarningCode is a primitive list, not an object — the
+            warning is a signal, not an aggregate."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> both events say "already happened"
+          and carry the facts a subscriber would need. Neither names a
+          subscriber. The domain stays quiet about who reacts — that is the
+          decoupling.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three design questions with less help each time. Answer before opening
+          the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Which facts belong on
+          <code>BirthDataSaved</code>?
+        </p>
+        <p>
+          <em>My reasoning:</em> a subscriber (say, a projection or a notifier)
+          needs the identity and the essentials: the aggregate id, the
+          normalized values, the timestamp. It does not need the Drizzle row or
+          the SQL. Facts, not internals.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            id, normalized values, and timestamp — the facts subscribers need,
+            with no repository or SQL internals.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Where does the warning become a
+          signal?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> SaveBirthData receives a
+          <code>WarningCode[]</code> from <code>BirthData.create()</code>.
+          Complete the thought: the warning is a ______ (a signal), not an
+          entity — it has no identity or lifecycle. When the policy sees
+          'dst-ambiguous', it publishes ______.
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            The warning is a primitive signal (<code>WarningCode[]</code>), not
+            an entity — no identity, no lifecycle. When the policy sees
+            'dst-ambiguous', it publishes
+            <code>DstAmbiguousWarningRaised</code> as an immutable event.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Why must the source never
+          know its subscribers?
+        </p>
+        <p>
+          <em>Start:</em> if SaveBirthData named its subscribers (the email
+          service, the projection), a new listener would force a change to
+          SaveBirthData. Complete the last step: the publisher publishes the
+          fact and ______; adding a subscriber becomes a change to ______, not
+          to ______.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            The publisher publishes the fact and walks away; adding a subscriber
+            becomes a change to the subscriber side, not to the publisher. The
+            source's lack of knowledge is the decoupling.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Design a <strong>third domain event</strong> on paper — no editing the
+          repository. Reopen
+          <a href="../src/application/birth/SaveBirthData.ts"
+            ><code>src/application/birth/SaveBirthData.ts</code></a
+          >
+          and
+          <a href="../src/domain/birth/warnings.ts"
+            ><code>src/domain/birth/warnings.ts</code></a
+          >, then fill the card in your notebook.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Domain event design card
+            </caption>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Your answer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Event name (past tense)</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Given / When / Then</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Facts it carries</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Who could subscribe (do not change the publisher)</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints:</p>
+        <ul>
+          <li>
+            Pick a fact the domain already computes: the 'nonexistent' DST
+            outcome, or the successful conversion through
+            <code>IBirthToUTConverter</code>.
+          </li>
+          <li>
+            Name it with a past participle: <code>DstErrorRaised</code>,
+            <code>LocalTimeConverted</code>.
+          </li>
+          <li>
+            Facts only: ids, values, timestamp — no repository, no HTTP, no
+            subscriber names.
+          </li>
+        </ul>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A complete event design card — the proof you can express domain
+            facts without coupling them to their consumers.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "A domain event is a past-tense, immutable fact — a headline, not a
+            command."
+          </li>
+          <li>
+            "The publisher never knows its subscribers; adding a listener
+            changes the subscriber side only."
+          </li>
+          <li>
+            "WarningCode[] is a primitive signal, not an entity; the DST warning
+            can become a domain event."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the newspaper analogy breaks (recap):</strong>
+          newspapers know their readers; events do not know their subscribers.
+          And events buy decoupling, not delivery guarantees.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> how to prove the domain behaves — tests
+          that call the rules directly.
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Is this a headline or
+          an instruction?" — the test that separates facts from commands.
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant to sketch the event flow for a new fact — for
+          example:
+          <em
+            >"Sketch the event flow for a birth record save: publisher, event,
+            and two imaginary subscribers. Keep the publisher ignorant of
+            them."</em
+          >
+          Judge the sketch: the event must be past tense and immutable; the
+          publisher must not import or name the subscribers; and a subscriber
+          must react to the fact (e.g., a projection) without changing the
+          publisher's code.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A domain event records that something important already happened — past tense, immutable, published to unknown subscribers. It is never a command with a chosen listener, and it is not a database write. In Astralia, BirthDataSaved would carry the id, values, and timestamp."
+        >
+          <p class="quiz-question">Which option is a real event?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> A record that something
+                important already happened.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A command that names its own
+                subscribers.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A database row with the final
+                state.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 7 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Fowler, "Domain Event" — the credit-card story and the classic
+            definition —
+            <a href="https://martinfowler.com/eaaDev/DomainEvent.html"
+              >martinfowler.com/eaaDev/DomainEvent.html</a
+            >.
+          </li>
+          <li>
+            Evans, official Domain-Driven Design materials —
+            <a href="https://www.domainlanguage.com/ddd/"
+              >domainlanguage.com/ddd/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (term <em>Domain event</em>).
+          </li>
+          <li>
+            Local files:
+            <a href="../src/application/birth/SaveBirthData.ts"
+              ><code>SaveBirthData.ts</code></a
+            >,
+            <a href="../src/domain/birth/warnings.ts"
+              ><code>warnings.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-05.md"
+            ><code>learning-records/session-05.md</code></a
+          >: cold recall, event design card, judged AI sketch (publisher
+          ignorance), verdict with evidence, confidence (1-5) and unresolved
+          question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 09 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="08-dependency-rule.html">Lesson 08 — The dependency rule</a> ·
+        Next:
+        <a href="10-testing-the-domain.html">Lesson 10 — Testing the domain</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

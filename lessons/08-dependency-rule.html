@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 08 — The Dependency Rule: Architecture as an AI Navigation Map ·
+      Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 4 · Lesson 08</p>
+      <h1>The dependency rule: architecture as an AI navigation map</h1>
+      <p class="subtitle">
+        The web is a detail. The database is a detail. The business rules are
+        the point — and everything must point toward them.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          You are in a theater. The audience sees the stage, the lights, the
+          curtains — a perfect show. Behind the stage, technicians run cables,
+          rig lights, and change sets. Nobody in the audience cares about the
+          cable vendor; they care about the play. If the light vendor changes
+          tomorrow, the play must not change.
+        </p>
+        <p>
+          Software is the same: the user sees the web page; behind it, HTTP
+          routes, a database, third-party services. When the database vendor
+          changes, the business rules must not change. This lesson gives you the
+          rule that makes that true — and shows you the test that proves it.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to place any file in its
+          layer, draw its import edges, and use the architecture test as an AI
+          navigation map.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              Who owns the port, and who implements the adapter? (Lesson 06)
+            </li>
+            <li>
+              What does a use case orchestrate, and what decides? (Lesson 07)
+            </li>
+            <li>
+              Draw the layers: Domain, Application, Infrastructure, Interface.
+              Which direction may arrows point?
+            </li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 5</p>
+          <ul>
+            <li>
+              <strong>Dependency rule</strong> — source code dependencies point
+              inward, never outward.
+            </li>
+            <li>
+              <strong>Dependency inversion</strong> — outer layers depend on
+              abstractions the inner layers own, not on concrete outer code.
+            </li>
+            <li>
+              <strong>Layer police</strong> — the test (or linter) that catches
+              a forbidden import at CI time.
+            </li>
+            <li>
+              <strong>Onion architecture</strong> — the model of layers around
+              the domain, each able to see only the layers nearer the center.
+            </li>
+            <li>
+              <strong>Composition root</strong> — the one place where adapters
+              get wired to ports.
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">TS basics — imports are dependencies</p>
+          <p>
+            An <code>import</code> statement is a dependency arrow: if
+            <code>signin.ts</code> imports <code>SignIn.ts</code>, then
+            <code>signin.ts</code> depends on <code>SignIn.ts</code>. The
+            dependency rule is a rule about where those arrows may point — a
+            policy on the <code>import</code> keyword.
+          </p>
+        </div>
+
+        <h3>Step 1 — Four layers, one direction</h3>
+        <p>
+          <strong>In plain words:</strong> Astralia has four layers — Interface
+          (pages and API routes), Infrastructure (DB, auth, external APIs),
+          Application (use cases), Domain (business rules) — and every
+          dependency arrow points inward, toward the domain.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> the dependency rule states that
+          source code dependencies must point only inward: Interface →
+          Application → Domain, with Infrastructure also depending only on the
+          Domain ports it implements; the Domain imports nothing from the other
+          layers.
+        </p>
+        <p>
+          <strong>The analogy — the onion:</strong> the domain is the core; each
+          outer layer may see the layers inside it, but the core never sees the
+          skin. Astralia's layers: Interface (the skin), Infrastructure (the
+          flesh), Application (the onion's inner layer), Domain (the core).
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            An onion has no tests; Astralia's layer police (<a
+              href="../tests/architecture.test.ts"
+              ><code>tests/architecture.test.ts</code></a
+            >) verifies the edges at CI time. Also, an onion is a static picture
+            — in code, interfaces let arrows point inward while the actual call
+            flow (route → use case → port → adapter) runs outward. That trick is
+            dependency inversion, Step 3.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Dependencies point inward, toward abstractions and business rules. Outward edges (or free imports) break the rule and defeat the point of the layers."
+        >
+          <p class="quiz-question">Which direction may dependencies point?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Inward, toward abstractions
+                and business rules.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Outward, toward frameworks
+                and database engines.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Freely, wherever convenience
+                dictates the import.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — Four layers in Astralia, with real files</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>
+              The four layers and their real inhabitants
+            </caption>
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>What lives there</th>
+                <th>Astralia examples</th>
+                <th>May import</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Domain</td>
+                <td>Business rules: entities, VOs, ports, warnings</td>
+                <td>
+                  <code>BirthData.vo.ts</code>, <code>NatalChart.vo.ts</code>,
+                  <code>IBirthDataRepository.ts</code>
+                </td>
+                <td>nothing from other layers</td>
+              </tr>
+              <tr>
+                <td>Application</td>
+                <td>Use cases that coordinate one goal</td>
+                <td>
+                  <code>SaveBirthData.ts</code>, <code>SignIn.ts</code>,
+                  <code>CalculateChart.ts</code>
+                </td>
+                <td>Domain only</td>
+              </tr>
+              <tr>
+                <td>Infrastructure</td>
+                <td>
+                  Adapters implementing domain ports; DB, auth, external APIs
+                </td>
+                <td>
+                  <code>DrizzleBirthDataRepository.ts</code>,
+                  <code>BetterAuthRepository.ts</code>,
+                  <code>CaelusBirthConverter.ts</code>,
+                  <code>CaelusChartCalculator.ts</code>
+                </td>
+                <td>Domain ports (and frameworks)</td>
+              </tr>
+              <tr>
+                <td>Interface</td>
+                <td>HTTP entry points, pages, components</td>
+                <td>
+                  <code>src/pages/api/birth-data/create.ts</code>,
+                  <code>responseMapping.ts</code>
+                </td>
+                <td>Application (and Domain VOs for shaping)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong
+            >The analogy — the orchestra conductor (from Lesson 07):</strong
+          >
+          the domain is the score (immutable meaning), the application is the
+          conductor (ordering), the infrastructure is the instruments (noise and
+          metal), the interface is the audience's ears. The score never learns
+          the instrument's brand.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            An orchestra plays the same score the same way every night; software
+            must evolve as the business does. And a conductor is present for the
+            whole concert — the application layer is not: it is only one
+            consumer of the domain, which also runs under tests without any
+            performance.
+          </p>
+        </div>
+
+        <h3>Step 3 — Dependency inversion: arrows inward, flow outward</h3>
+        <p>
+          <strong>In plain words:</strong> the flow runs route → use case → port
+          → adapter, but the imports point the other way: the use case imports
+          the port (domain), and the adapter imports the same port — so the
+          domain knows neither the use case nor the adapter.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> dependency inversion means outer
+          layers depend on abstractions that inner layers own. The port lives in
+          the domain; the adapter (infrastructure) implements it; the use case
+          (application) calls it. The domain owns the contract; the details obey
+          it.
+        </p>
+        <p>
+          <strong>The analogy — "the web is a detail" (Uncle Bob):</strong> the
+          HTTP request is like the theater's ticket: necessary for the show to
+          run, but not part of the play. If tickets become QR codes, the play
+          does not change.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A theater can be dark forever without a show; software with no
+            interface still runs tests and other consumers. Also, "the web is a
+            detail" does not mean "the web is unimportant" — it means the
+            business rules must survive the web's replacement.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="The architecture test in tests/ proves the rule at CI time. Diagrams and naming are nice, but only an executable test can fail a build when an edge points outward."
+        >
+          <p class="quiz-question">What proves the rule at CI time?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> The executable architecture
+                test in tests/.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> The README and its beautiful
+                diagrams.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> The folder names and file
+                extensions.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will open
+          <a href="../tests/architecture.test.ts"
+            ><code>tests/architecture.test.ts</code></a
+          >
+          and walk its edges out loud. Follow the reasoning; you will draw edges
+          yourself.
+        </p>
+        <p>
+          <em
+            >"The test polices the three inner layers today. Domain may import
+            nothing from the other layers. Application may import domain only —
+            never interface or infrastructure. Infrastructure may import domain
+            ports plus the frameworks it needs — never interface or application.
+            And pages? The test does not police src/pages/ yet: a page that
+            imported Drizzle directly would not fail it today. That edge is kept
+            inward by documented policy in
+            <a href="../docs/architecture.md"
+              ><code>docs/architecture.md</code></a
+            >, not by the test — adding a pages rule would be a good future
+            improvement."</em
+          >
+        </p>
+        <p>
+          <em
+            >"Now watch the flow I traced in Lesson 07 through this rule:
+            chart/natal.ts (interface) calls CalculateChart.ts (application),
+            which calls IBirthDataRepository and IChartCalculator (domain
+            ports), which are implemented by DrizzleBirthDataRepository and
+            CaelusChartCalculator (infrastructure). Every import arrow points
+            inward; every runtime call runs outward through the ports. If the
+            test passes, the onion is intact."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> the architecture test is the
+          executable version of the lesson's diagrams. When an AI proposes an
+          import, I can judge it in one sentence: "does this edge point inward?"
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three placement questions with less help each time. Answer before
+          opening the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Which layer may import
+          better-auth?
+        </p>
+        <p>
+          <em>My reasoning:</em> better-auth is a framework. Frameworks live in
+          infrastructure, behind ports. So the file that imports better-auth is
+          an adapter — <code>BetterAuthRepository.ts</code> — implementing the
+          domain port <code>IAuthRepository</code>. The route calls the port,
+          never the framework.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Infrastructure only, inside an adapter that implements a domain
+            port. Neither the route nor the use case may import better-auth;
+            they depend on the port.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Where does a second chart
+          calculator go, and what must stay untouched?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> the contract is the port
+          <code>IChartCalculator</code> in the domain — it stays. Complete the
+          thought: the new calculator is an adapter, so it lives in
+          <code>src/infrastructure/…</code>, implements the same port, and gets
+          registered where? The architecture test edges for this feature….
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            The new calculator lives in infrastructure as a new adapter class
+            implementing the same <code>IChartCalculator</code> port; it is
+            registered where calculators are wired (the composition root). Port,
+            use case, and interface stay untouched; the architecture test edges
+            remain valid because the port still lives in the domain.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Why is "the web is a
+          detail" good news for an AI that writes code?
+        </p>
+        <p>
+          <em>Start:</em> the architecture gives the AI a map — every file has a
+          layer and a rule for its imports. Complete the last step: when an AI
+          knows the dependency rule, it stops proposing route files that import
+          ______, and instead proposes ______.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            When an AI knows the dependency rule, it stops proposing route files
+            that import Drizzle or other infrastructure directly, and instead
+            proposes use cases and domain ports. The architecture is the AI's
+            navigation map: one sentence — "does this edge point inward?" —
+            resolves most placement debates.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Build an <strong>AI Architecture Review Card</strong> for the chart
+          natal flow. Reopen
+          <a href="../src/pages/api/chart/natal.ts"
+            ><code>src/pages/api/chart/natal.ts</code></a
+          >,
+          <a href="../src/application/chart/CalculateChart.ts"
+            ><code>src/application/chart/CalculateChart.ts</code></a
+          >, and
+          <a href="../tests/architecture.test.ts"
+            ><code>tests/architecture.test.ts</code></a
+          >, then fill the card in your notebook. Do not edit the repository.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              AI Architecture Review Card — chart natal flow
+            </caption>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Layer</th>
+                <th>Imports (edges)</th>
+                <th>Edge points inward?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints:</p>
+        <ul>
+          <li>
+            Trace the flow like Lesson 07: route → use case → ports → adapters.
+          </li>
+          <li>
+            For each file, list its imports and mark whether the imported file
+            lives in the same or an inner layer.
+          </li>
+          <li>
+            Run <code>npx vitest run tests/architecture.test.ts</code> to see
+            the layer police pass on the real flow.
+          </li>
+        </ul>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A card with every edge marked "inward" — the proof you can navigate
+            the codebase and audit AI proposals layer by layer.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "Dependencies point inward: Interface → Application → Domain, with
+            Infrastructure implementing domain ports."
+          </li>
+          <li>
+            "tests/architecture.test.ts is the executable layer police, and it
+            proves the edges at CI time."
+          </li>
+          <li>
+            "'The web is a detail' means business rules must survive the web's
+            replacement."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the onion analogy breaks (recap):</strong> an onion has
+          no executable test, and the real flow runs outward through ports — the
+          diagram is static, the code is alive.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> what happens when the domain needs to
+          tell the world something happened — domain events.
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Does this import edge
+          point inward?" — the one-sentence architecture review.
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant to plan a new feature file by file, without writing
+          code — for example:
+          <em
+            >"Plan an 'email change' feature for Astralia: one file per layer,
+            with each file's imports listed."</em
+          >
+          Judge the plan: every import edge must point inward. Veto any plan
+          where a route imports infrastructure, a use case imports a framework,
+          or the domain imports anything from the other layers. Ask for the
+          architecture test's verdict on your shared plan.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Inner layers depend on abstractions, never outer details. Option B says outer classes import inner classes directly — that flattens the port-based design. Option C allows any import in any direction, which breaks the rule. In Astralia: the use case depends on the domain port; the adapter obeys it."
+        >
+          <p class="quiz-question">Which statement follows the rule?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Inner layers depend on
+                abstractions, never outer details.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Outer layers import inner
+                classes directly without ports.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Every layer may import any
+                other layer freely.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 8 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Martin (Uncle Bob), "The Clean Architecture" — the onion and "the
+            web is a detail" —
+            <a
+              href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html"
+              >blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html</a
+            >.
+          </li>
+          <li>
+            Cockburn, "Hexagonal Architecture" — ports and adapters, the
+            original framing —
+            <a href="https://alistair.cockburn.us/hexagonal-architecture/"
+              >alistair.cockburn.us/hexagonal-architecture/</a
+            >.
+          </li>
+          <li>
+            Evans, official Domain-Driven Design materials —
+            <a href="https://www.domainlanguage.com/ddd/"
+              >domainlanguage.com/ddd/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (term <em>Port</em>, <em>Adapter</em>, <em>Layers</em>).
+          </li>
+          <li>
+            Local files:
+            <a href="../tests/architecture.test.ts"
+              ><code>tests/architecture.test.ts</code></a
+            >,
+            <a href="../src/application/chart/CalculateChart.ts"
+              ><code>CalculateChart.ts</code></a
+            >,
+            <a href="../src/pages/api/chart/natal.ts"
+              ><code>chart/natal.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-04.md"
+            ><code>learning-records/session-04.md</code></a
+          >: cold recall, AI Architecture Review Card, judged AI plan (file list
+          with import edges), verdict with evidence, confidence (1-5) and
+          unresolved question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 08 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="07-use-cases.html">Lesson 07 — User goals become use cases</a>
+        · Next: <a href="09-domain-events.html">Lesson 09 — Domain events</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

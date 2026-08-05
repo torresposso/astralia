@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 06 — Ports, Adapters &amp; Repository: Contracts Inward, Technology
+      Outward · Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 3 · Lesson 06</p>
+      <h1>
+        Contracts inward, technology outward: ports, adapters and repository
+      </h1>
+      <p class="subtitle">
+        The domain declares what it needs; the outside world plugs in how it is
+        done. This lesson makes vendor swaps predictable instead of scary.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          Your laptop has a USB-C port. Does the laptop care whether the charger
+          is Apple, Samsung, or a generic brand? No — the port defines the
+          <em>shape</em>, and any plug that fits works. Now imagine the opposite
+          design: a laptop that is welded to one specific charger, with its
+          cable glued in. To change chargers you would have to rebuild the
+          laptop.
+        </p>
+        <p>
+          Software does this all the time: business logic welded to a specific
+          database, a specific HTTP framework, a specific astrology library.
+          DDD's answer is to draw the <strong>port</strong> (the socket) and
+          write <strong>adapters</strong> (the plugs).
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to trace any Astralia port
+          to its adapter, state who owns the contract, and predict what changes
+          when a vendor changes.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What did Lesson 05 conclude about aggregate roots in Astralia —
+              what evidence was missing?
+            </li>
+            <li>
+              Name the three ports under
+              <code>src/domain/birth/ports/</code> and the one under
+              <code>src/domain/chart/ports/</code>.
+            </li>
+            <li>
+              What is an interface, in your own words, from Lesson 05's
+              repository discussion?
+            </li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 4</p>
+          <ul>
+            <li>
+              <strong>Interface / contract</strong> — a promise of actions an
+              object provides.
+            </li>
+            <li>
+              <strong>Port</strong> — a contract owned by the inner layer for a
+              needed capability.
+            </li>
+            <li>
+              <strong>Adapter</strong> — an outer implementation that satisfies
+              a port.
+            </li>
+            <li>
+              <strong>Repository</strong> — a collection-like persistence port.
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">TS basics — what is an interface?</p>
+          <p>
+            An interface is a <strong>promise</strong>: "anything that claims to
+            be X must provide these actions." In TypeScript,
+            <code>interface IBirthDataRepository</code> lists the methods
+            (<code>create</code>, <code>findById</code>, <code>update</code>,
+            <code>delete</code>) and the types they use. The promise has no body
+            — the implementation lives elsewhere.
+          </p>
+          <p>
+            The killer analogy (from tiberriver256): a tool has a 6×2-inch rod
+            spec. The arm-team and the whacker-team build separately, but
+            because both follow the spec, the rod makes them fit. The spec is
+            the interface; neither team needs the other's code.
+          </p>
+          <p class="meta-line">
+            Where this stops being true: a spec can be followed wrongly. An
+            interface guarantees the <em>shape</em>, not the <em>behavior</em> —
+            behavior is proven by tests (Lesson 10).
+          </p>
+        </div>
+
+        <h3>Step 1 — The port: a socket owned by the inside</h3>
+        <p>
+          <strong>In plain words:</strong> a port is a hole with a fixed shape —
+          the contract for a capability the domain needs but does not implement.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a port is an interface owned by
+          the domain or application layer that declares a needed capability
+          without saying how it is fulfilled; the outside world supplies the
+          fulfillment.
+        </p>
+        <p>
+          <strong>The analogy — the USB-C socket:</strong> the socket speaks one
+          language (voltage), and any charger adapts to it. The application core
+          (the socket) never changes when devices (database, HTTP, tests) plug
+          in. Cockburn invented the name from electronics ports.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Sockets have a fixed standard; ports are shaped by your own design
+            decisions and can change when the business changes. Also, a socket
+            does not care <em>who</em> owns it — ownership is the whole point of
+            a port: the inner layer owns the contract, never the vendor.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="An interface promises that certain actions will be available — a contract of capabilities. Storage guarantees and self-knowledge are not what an interface promises."
+        >
+          <p class="quiz-question">What does an interface promise?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> That certain actions will be
+                available.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> That data is stored somewhere
+                safely.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> That every object knows its
+                name.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — The adapter: the plug for one device</h3>
+        <p>
+          <strong>In plain words:</strong> an adapter is the plug that makes one
+          specific device fit the port — it translates the outside world into
+          the contract.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> an adapter is an outer-layer
+          implementation or translator that satisfies a port, converting the
+          port's language into the vendor's API and back.
+        </p>
+        <p>
+          <strong>The analogy:</strong> a universal travel adapter — the wall
+          socket is a port; each country's plug is an adapter for its own power
+          grid. In Astralia, <code>CaelusBirthConverter</code> implements
+          <code>IBirthToUTConverter</code>: the domain says "convert this birth
+          data to UT", and the adapter knows how to speak to the
+          <code>caelus-birth</code> package.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Adapters in code are not interchangeable hardware: each one may have
+            different failure modes and different results. Swapping an adapter
+            is safe for the <em>contract</em>, but the behavior behind it still
+            needs its own tests.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="The inner domain layer owns the port contract — that is the whole inversion. Vendors, databases, and frameworks are outside and must adapt to the contract, not define it."
+        >
+          <p class="quiz-question">Who owns the port contract?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> The inner domain layer
+                always.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> The vendor's external
+                database team.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> The database, framework, and
+                HTTP.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — The repository: a collection you can ask</h3>
+        <p>
+          <strong>In plain words:</strong> a repository is a box with a label:
+          you ask for "birth data with id X" and get it back, without knowing if
+          it came from a shelf, a vault, or a warehouse.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a repository is a collection-like
+          interface for loading and saving domain objects, acting like an
+          in-memory collection while hiding the storage technology. It is one
+          kind of port — not every adapter is a repository.
+        </p>
+        <p>
+          <strong>The analogy — the library catalog/librarian:</strong> you ask
+          the librarian for a book by title; you never walk into the storage
+          room. The library can reorganize the whole warehouse and you do not
+          care. In Astralia, <code>IBirthDataRepository</code> is the label;
+          <code>DrizzleBirthDataRepository</code> is the warehouse worker.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A library catalog is read-only and well organized; repositories
+            handle writes, failures, and tricky consistency questions. A
+            repository also does not make everything an aggregate — as Lesson 05
+            showed, persistence of a unit does not prove a root.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will trace every Astralia port to its adapter out loud. The ports
+          live under <code>src/domain/*/ports/</code>; the adapters under
+          <code>src/infrastructure/</code>.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Port-to-adapter map
+            </caption>
+            <thead>
+              <tr>
+                <th>Port (inner contract)</th>
+                <th>Adapter (outer implementation)</th>
+                <th>Who owns the interface?</th>
+                <th>Who knows the vendor?</th>
+                <th>Unchanged when vendor changes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a href="../src/domain/auth/ports/IAuthRepository.ts"
+                    ><code>IAuthRepository</code></a
+                  >
+                </td>
+                <td>
+                  <a href="../src/infrastructure/auth/BetterAuthRepository.ts"
+                    ><code>BetterAuthRepository</code></a
+                  >
+                </td>
+                <td>Domain</td>
+                <td>Adapter</td>
+                <td>Domain + use cases</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+                    ><code>IBirthDataRepository</code></a
+                  >
+                </td>
+                <td>
+                  <a
+                    href="../src/infrastructure/birth/DrizzleBirthDataRepository.ts"
+                    ><code>DrizzleBirthDataRepository</code></a
+                  >
+                </td>
+                <td>Domain</td>
+                <td>Adapter</td>
+                <td>Domain + use cases</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/birth/ports/IBirthToUTConverter.ts"
+                    ><code>IBirthToUTConverter</code></a
+                  >
+                </td>
+                <td>
+                  <a href="../src/infrastructure/birth/CaelusBirthConverter.ts"
+                    ><code>CaelusBirthConverter</code></a
+                  >
+                </td>
+                <td>Domain</td>
+                <td>Adapter</td>
+                <td>Domain + use cases</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/birth/ports/IGeocoder.ts"
+                    ><code>IGeocoder</code></a
+                  >
+                </td>
+                <td>
+                  <a
+                    href="../src/infrastructure/birth/OpenMeteoGeocodingAdapter.ts"
+                    ><code>OpenMeteoGeocodingAdapter</code></a
+                  >
+                </td>
+                <td>Domain</td>
+                <td>Adapter</td>
+                <td>Domain + use cases</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/chart/ports/IChartCalculator.ts"
+                    ><code>IChartCalculator</code></a
+                  >
+                </td>
+                <td>
+                  <a href="../src/infrastructure/chart/CaelusChartCalculator.ts"
+                    ><code>CaelusChartCalculator</code></a
+                  >
+                  (+
+                  <a href="../src/infrastructure/chart/CaelusChartMapper.ts"
+                    ><code>CaelusChartMapper</code></a
+                  >
+                  as translation support)
+                </td>
+                <td>Domain</td>
+                <td>Adapter</td>
+                <td>Domain + use cases</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <em
+            >"First I look at IGeocoder. It declares a capability: resolve a
+            place name to coordinates and timezone. Who knows Open-Meteo's API?
+            Not the domain — the adapter. If tomorrow we switch to a different
+            geocoding service, the port, the domain, and the use cases stay
+            untouched; only OpenMeteoGeocodingAdapter changes. That is the
+            answer to 'what remains unchanged?': everything inside the
+            port."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> every row has the same shape — inner
+          contract, outer plug, vendor knowledge contained at the edge. The
+          blast radius of a vendor swap is exactly one adapter.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three questions, with less help each time. Answer before opening the
+          suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> For
+          <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+            ><code>IBirthDataRepository</code></a
+          >
+          → <code>DrizzleBirthDataRepository</code>: who owns the interface, and
+          who knows the vendor (Turso + Drizzle)?
+        </p>
+        <p>
+          <em>My reasoning:</em> the interface file lives in
+          <code>src/domain/birth/ports/</code> and uses only domain types
+          (<code>BirthData</code>, domain errors). The implementation file
+          imports the database client and writes Drizzle queries. So: the domain
+          owns the interface; the adapter knows the vendor.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Domain owns the interface; <code>DrizzleBirthDataRepository</code>
+            knows the vendor. The location (domain/ports vs infrastructure) and
+            the imports are the evidence.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> If Astralia swapped Turso for
+          PostgreSQL, what must stay unchanged?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> the contract is the port. Ask: who
+          depends on the port — the domain and the use cases. Complete the
+          thought: only the ______ changes; the domain, the use cases, and the
+          ______ stay untouched.
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            Only the adapter (<code>DrizzleBirthDataRepository</code> or a new
+            Postgres adapter) changes. The port, the domain objects, and the
+            application use cases stay untouched — that is the point of the
+            seam.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> For
+          <a href="../src/domain/chart/ports/IChartCalculator.ts"
+            ><code>IChartCalculator</code></a
+          >
+          → <code>CaelusChartCalculator</code>: if the team adds a second chart
+          calculator, what changes and what does not?
+        </p>
+        <p>
+          <em>Start:</em> the port lists <code>calculate(...)</code> — one
+          capability. A second calculator would be another class implementing
+          the same port. Complete the last step: the ______ stays; the new
+          calculator is a new ______ that implements the same ______; the
+          application policy that calls it does not change unless the contract
+          itself grows.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            The port stays; the new calculator is a new adapter implementing the
+            same contract; the application policy stays unchanged unless the
+            contract grows. You predicted the Lesson 08 placement task — that is
+            the pattern doing the work.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Build the <strong>inward/outward dependency map</strong>. Copy the
+          five rows from the worked example into your notebook, then for each
+          row answer the three questions:
+        </p>
+        <ol>
+          <li>Who owns the interface?</li>
+          <li>Who knows the vendor?</li>
+          <li>
+            What should remain unchanged when the vendor changes? (name at least
+            one concrete file)
+          </li>
+        </ol>
+        <p>
+          Verify each answer by opening the actual files: check the folder, the
+          imports, and which types appear in the interface signatures.
+        </p>
+        <ul class="sources">
+          <li>
+            <a href="../src/domain/auth/ports/IAuthRepository.ts"
+              ><code>IAuthRepository.ts</code></a
+            >
+            vs
+            <a href="../src/infrastructure/auth/BetterAuthRepository.ts"
+              ><code>BetterAuthRepository.ts</code></a
+            >
+          </li>
+          <li>
+            <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+              ><code>IBirthDataRepository.ts</code></a
+            >
+            vs
+            <a href="../src/infrastructure/birth/DrizzleBirthDataRepository.ts"
+              ><code>DrizzleBirthDataRepository.ts</code></a
+            >
+          </li>
+          <li>
+            <a href="../src/domain/birth/ports/IBirthToUTConverter.ts"
+              ><code>IBirthToUTConverter.ts</code></a
+            >
+            vs
+            <a href="../src/infrastructure/birth/CaelusBirthConverter.ts"
+              ><code>CaelusBirthConverter.ts</code></a
+            >
+          </li>
+          <li>
+            <a href="../src/domain/birth/ports/IGeocoder.ts"
+              ><code>IGeocoder.ts</code></a
+            >
+            vs
+            <a href="../src/infrastructure/birth/OpenMeteoGeocodingAdapter.ts"
+              ><code>OpenMeteoGeocodingAdapter.ts</code></a
+            >
+          </li>
+          <li>
+            <a href="../src/domain/chart/ports/IChartCalculator.ts"
+              ><code>IChartCalculator.ts</code></a
+            >
+            vs
+            <a href="../src/infrastructure/chart/CaelusChartCalculator.ts"
+              ><code>CaelusChartCalculator.ts</code></a
+            >
+            and
+            <a href="../src/infrastructure/chart/CaelusChartMapper.ts"
+              ><code>CaelusChartMapper.ts</code></a
+            >
+          </li>
+        </ul>
+        <p>
+          Then draw it as a map: the ports in one ring (inner), the adapters in
+          the outer ring, with arrows showing who depends on whom. Mark any row
+          where the adapter imports a vendor SDK (e.g., <code>caelus</code>,
+          Drizzle, better-auth) — those are the seams.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            An inward/outward dependency map — show it to the AI before any
+            vendor change and demand the plan touches only the adapter ring.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "Every Astralia port has an adapter; the domain owns every
+            contract."
+          </li>
+          <li>
+            "A vendor swap changes exactly one adapter — I can name the file."
+          </li>
+          <li>
+            "A repository is a kind of port; not every adapter is a repository."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the USB-C analogy breaks (recap):</strong> ports are
+          your design, not a standard; adapters are not interchangeable
+          hardware, and their behavior still needs tests.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> who calls these ports? User goals become
+          use cases — the application layer that orchestrates everything.
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Who owns the port, and
+          who knows the vendor? — Inner layer owns; adapter knows."
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant:
+          <em
+            >"Replace Open-Meteo with a different geocoding provider in
+            Astralia."</em
+          >
+          Mark any proposed import of the provider SDK into the domain or into a
+          use case as a <strong>boundary violation</strong>. The correct plan: a
+          new adapter under <code>src/infrastructure/birth/</code> that
+          implements <code>IGeocoder</code>, with the port, domain, and use
+          cases untouched.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A port is an interface describing a needed capability — the contract owned by the inner layer. An adapter is the implementation of that contract, not the language itself. A repository is a collection-like port, not a physical table."
+        >
+          <p class="quiz-question">What is a port?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> A port is an interface
+                describing needed capability.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> An adapter is an interface
+                describing business language.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A repository is a table
+                storing every object.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 8 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Cockburn, "Hexagonal Architecture" (the origin of the name; the
+            application blissfully ignorant of the outside) —
+            <a href="https://alistair.cockburn.us/hexagonal-architecture/"
+              >alistair.cockburn.us/hexagonal-architecture/</a
+            >.
+          </li>
+          <li>
+            Fowler, "Repository" (acting like an in-memory domain object
+            collection) —
+            <a href="https://martinfowler.com/eaaCatalog/repository.html"
+              >martinfowler.com/eaaCatalog/repository.html</a
+            >.
+          </li>
+          <li>
+            tiberriver256, "ELI5: Dependency Injection" (the 6×2-inch rod spec)
+            —
+            <a
+              href="https://tiberriver256.github.io/programming/eli5-dependency-injection/"
+              >tiberriver256.github.io/programming/eli5-dependency-injection/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Port</em>, <em>Adapter</em>, <em>Repository</em>).
+          </li>
+          <li>
+            Local files: the ports under
+            <a href="../src/domain/"><code>src/domain/</code></a> and the
+            adapters under
+            <a href="../src/infrastructure/"><code>src/infrastructure/</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-03.md"
+            ><code>learning-records/session-03.md</code></a
+          >: cold recall, port-to-adapter map, judged AI proposal (the OpenMeteo
+          replacement), verdict with evidence, confidence (1-5) and unresolved
+          question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 06 of 10</p>
+      <p class="meta-line">
+        Previous: <a href="05-aggregate.html">Lesson 05 — Aggregate</a> · Next:
+        <a href="07-use-cases.html">Lesson 07 — Use cases</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

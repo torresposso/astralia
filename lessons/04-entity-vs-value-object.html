@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 04 — Entity vs Value Object: Identity Versus Description · Astralia
+      DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 2 · Lesson 04</p>
+      <h1>Identity versus description: entity and value object</h1>
+      <p class="subtitle">
+        One object is <em>who</em>; the other is <em>what</em>. The difference
+        decides whether you add an id, a setter, or a repository.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          Which one are you: a person or a $5 bill? You have an identity — you
+          are still you at age 5 and age 50, though every cell in your body has
+          been replaced. A $5 bill is just $5: swap it for another $5 bill and
+          nothing changed. One is a <em>who</em>, the other is a <em>what</em>.
+        </p>
+        <p>
+          In code, this difference decides everything about how you design an
+          object: does it need an id? Does it change over time? Can two of them
+          be the same? Teams that ignore it turn every concept into a table with
+          a primary key — and lose the meaning.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to classify any object as
+          an <strong>entity</strong> or a <strong>value object</strong>, and
+          veto AI proposals that add IDs or setters to descriptions.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What is ubiquitous language, and which file is Astralia's
+              vocabulary contract?
+            </li>
+            <li>
+              Name one term the contract forbids and its preferred replacement.
+            </li>
+            <li>
+              Why did we say "Email" belongs to the Auth context — what is its
+              role there?
+            </li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 4</p>
+          <ul>
+            <li><strong>Entity</strong> — a thing with a lifelong identity.</li>
+            <li>
+              <strong>Value object</strong> — a description defined by its
+              values, normally immutable.
+            </li>
+            <li>
+              <strong>Identity</strong> — what makes an object itself over time.
+            </li>
+            <li><strong>Immutable</strong> — cannot change after creation.</li>
+          </ul>
+        </div>
+
+        <h3>Step 1 — The entity: a lifelong identity</h3>
+        <p>
+          <strong>In plain words:</strong> an entity is a thing with a stable
+          identity — it stays "itself" even when its details change.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> an entity is an object recognized
+          by a stable identity that persists through time and through changes in
+          its attributes; two instances with the same identity are the same
+          thing.
+        </p>
+        <p>
+          <strong>The analogy — a person:</strong> you have an id that follows
+          you your whole life. Change your haircut, your job, your address —
+          still you. In Astralia, <code>User</code> is the entity: two User
+          instances with the same <code>id</code> are the same person, and
+          <code>User.equals()</code> compares by <code>id</code>, not by name.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A person's identity is a fact of the world. In code, identity is a
+            <em>choice</em>: you decide which field is the id, and the id only
+            matters if the object has a lifecycle — it is loaded, changed, and
+            saved again.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Identity over time is what makes an entity — you can point at the same object after its attributes change. Having many attributes or mapping a table row are symptoms of storage and data, not of identity."
+        >
+          <p class="quiz-question">What makes something an entity?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> It keeps a stable identity
+                over time.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> It holds lots of attributes
+                in code.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> It maps one row of a table.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — The value object: the description is the thing</h3>
+        <p>
+          <strong>In plain words:</strong> a value object is a description where
+          the value itself is all that matters — two equal descriptions are the
+          same description.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a value object is an object
+          defined by its values, not by identity; it is normally treated as
+          immutable and replaceable — swapping one for an equal one changes
+          nothing.
+        </p>
+        <p>
+          <strong>The analogy — money:</strong> two $5 bills are the same $5.
+          Your pet is an entity (it has a name and a life); its name tag is a
+          value object — two identical tags are the same tag. In Astralia,
+          <code>Email</code> is a value object: an email address has no identity
+          beyond its characters. The validated string <em>is</em> the email.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Bills have serial numbers — real money does have an identifier. A
+            value object must not: if you start tracking each bill by serial
+            number, you have accidentally turned a description into an entity.
+            That is exactly the trap the AI drill at the end exposes.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Value objects are compared by their values — equality means the same content. An id or a folder is identity/storage talk, not value equality."
+        >
+          <p class="quiz-question">How are value objects compared?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> By all of their values
+                together.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> By their unique id, never
+                values.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> By the folder where they
+                live.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — Immutability: the value object's promise</h3>
+        <p>
+          <strong>In plain words:</strong> a value object never changes after it
+          is created; to "change" it, you make a new one.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> immutability means the object's
+          state is fixed at creation; any operation that would alter it returns
+          a new instance instead. This keeps equal values truly interchangeable.
+        </p>
+        <p>
+          <strong>The analogy:</strong> a printed ticket. You cannot erase and
+          rewrite the seat number on the ticket; you print a new ticket. In
+          Astralia, <code>BirthData.vo.ts</code> uses a private constructor and
+          exposes getters — no setters — so a birth record is born valid and
+          stays that way.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Tickets get torn and replaced constantly; value objects in memory
+            can be held in many places at once. If you mutate one and it is
+            shared, you corrupt everyone — immutability is a safety promise, not
+            a natural law of paper.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will classify two real files out loud. Read with me:
+          <a href="../src/domain/auth/User.entity.ts"
+            ><code>src/domain/auth/User.entity.ts</code></a
+          >
+          and
+          <a href="../src/domain/auth/Email.vo.ts"
+            ><code>src/domain/auth/Email.vo.ts</code></a
+          >.
+        </p>
+        <p>
+          <em
+            >"First I open User.entity.ts. The comment at the top says it all:
+            'Identity is the id field — two Users with the same id are the same
+            User.' I check equals(): it compares this.id === other.id. Identity.
+            And it has behavior — canSignIn(), getInitial() — so it is not just
+            data. Classification: entity, with evidence: the id field and the
+            identity-based equals().
+          </em>
+        </p>
+        <p>
+          <em
+            >"Now Email.vo.ts. I look for an id field: there is none. I look for
+            what makes two emails equal: the characters. The class validates and
+            exposes the value; there is no lifecycle — it is never 'loaded,
+            changed, saved again'. Classification: value object, with evidence:
+            no id, value-defined equality, immutable shape."
+          </em>
+        </p>
+        <p>
+          <em
+            >"Now a hypothetical card. Suppose the team wants a Timezone concept
+            ('America/Bogota'). Question: identity or value? A timezone is a
+            description — a label with rules. Two 'America/Bogota' values are
+            the same timezone. So: value object, and I would keep it immutable
+            with a private constructor. If the AI proposed giving it a UUID 'so
+            it can be stored independently', I would veto it: there is no
+            lifecycle to track."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> the decision never came from how many
+          fields the class had or whether it was saved. It came from one
+          question:
+          <em>does this thing have a life, or is it a description?</em>
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three classification questions, with less help each time. Answer
+          before opening the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Is
+          <a href="../src/domain/birth/BirthData.vo.ts"
+            ><code>BirthData.vo.ts</code></a
+          >
+          an entity or a value object?
+        </p>
+        <p>
+          <em>My reasoning:</em> the file is a <code>.vo.ts</code> — the team's
+          convention for value objects. The constructor is private, creation
+          goes through <code>create()</code> which validates invariants, and
+          there is no identity-based <code>equals()</code>. Classification:
+          value object — with one honest nuance: the record carries an optional
+          id used for persistence, but that is a storage key, not proof of
+          identity (Lesson 05 will dig into that).
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Value object. Evidence: <code>.vo.ts</code> naming, private
+            constructor, validated creation, value-based equality. The optional
+            id is a persistence key — note it, but do not let it change the
+            classification yet.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Is
+          <a href="../src/domain/chart/NatalChart.vo.ts"
+            ><code>NatalChart.vo.ts</code></a
+          >
+          an entity or a value object?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> read the top of the file and the
+          <code>create()</code> method. Ask: what identifies it — a stable id
+          with a lifecycle, or the values it holds (planets, angles, houses)?
+          Then finish the thought: CONTEXT.md even says the Chart "is not
+          persisted" and is calculated on the fly…
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            Value object. It is immutable (readonly fields, getters only),
+            validates invariants in <code>create()</code> (≥10 planets, exactly
+            12 houses), and is ephemeral — calculated on demand, never
+            persisted. A thing with no lifecycle is a description.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Hypothetical:
+          <code>ChartPreferences</code> (house system, zodiac, orbs). The
+          glossary in CONTEXT.md names it, but no value object exists yet.
+          Entity or value object?
+        </p>
+        <p>
+          <em>Start:</em> preferences are a set of calculation options — a
+          description of how to compute. Complete the last step: two sets of the
+          same preferences are interchangeable, so ChartPreferences would be a
+          ______, and the honest map says it is currently ______ in the
+          codebase.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            Value object. It is a pure description of options, so it should be
+            immutable and value-compared. And the honest map: the glossary names
+            it, but there is no <code>ChartPreferences.vo.ts</code> yet — mark
+            it as an absent concept instead of inventing code.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Build a reusable <strong>entity/VO decision card</strong>. For each
+          item, open the file and fill the columns. Do not edit the repository.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Decision card — identity vs description
+            </caption>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Identity?</th>
+                <th>Equality</th>
+                <th>Mutation</th>
+                <th>Reason (evidence)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a href="../src/domain/auth/User.entity.ts"
+                    ><code>User.entity.ts</code></a
+                  >
+                </td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/auth/Email.vo.ts"
+                    ><code>Email.vo.ts</code></a
+                  >
+                </td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/auth/Password.vo.ts"
+                    ><code>Password.vo.ts</code></a
+                  >
+                </td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/birth/BirthData.vo.ts"
+                    ><code>BirthData.vo.ts</code></a
+                  >
+                </td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/chart/NatalChart.vo.ts"
+                    ><code>NatalChart.vo.ts</code></a
+                  >
+                </td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/chart/PlanetPosition.vo.ts"
+                    ><code>PlanetPosition.vo.ts</code></a
+                  >
+                </td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>Timezone</code> (hypothetical)</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td><code>ChartPreferences</code> (hypothetical)</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints:</p>
+        <ul>
+          <li>
+            Check <code>equals()</code> in each class: identity-based (id) or
+            value-based (all fields)?
+          </li>
+          <li>
+            Check mutation: private constructor + getters only, or public
+            setters?
+          </li>
+          <li>
+            The hypothetical cards are exercises — the glossary names
+            ChartPreferences, but no VO exists; write "absent" rather than
+            inventing a file.
+          </li>
+        </ul>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A reusable decision card — the next time the AI says "let's add an
+            id to this", you can fill the card in your head and veto with one
+            sentence: "description, not identity."
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "User is an entity — identity by id; the .vo.ts files are value
+            objects — equality by value."
+          </li>
+          <li>
+            "A class keyword or a database row does not make an entity; a
+            lifecycle does."
+          </li>
+          <li>
+            "I can veto 'add a UUID to Email' with identity/equality reasoning,
+            not intuition."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the person/money analogy breaks (recap):</strong>
+          identity is a choice in code, not a fact of nature; and real bills
+          have serial numbers — the discipline is refusing to track them for
+          things without a life.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> entities and value objects often change
+          together — we draw the boundary that protects that group (aggregate
+          and aggregate root).
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Does this object have a
+          life, or is it a description? — That question, not the folder, decides
+          entity vs value object."
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant:
+          <em
+            >"Should we give Email a UUID so it can be stored
+            independently?"</em
+          >
+          Accept or veto using identity/equality — not intuition. The answer
+          should say: Email is a value object (equality by value, no lifecycle),
+          so a UUID would turn a description into a tracked identity for no
+          business reason. If the AI says "it's safer for the database", veto it
+          with evidence: the database key is a storage detail; identity belongs
+          to things that live and change.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="1"
+          data-explain="The core distinction: a value object is identified by its equality — two equal values are the same value. An entity is identified by a stable identity (A is true but not the distinguishing answer here), and a repository is an infrastructure concept, not an identity principle. In Astralia, Email.vo.ts compares by value; User.entity.ts compares by id."
+        >
+          <p class="quiz-question">What is the key distinction?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> An entity is identified by a
+                stable identity.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A value object is identified
+                by its equality.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A repository is identified by
+                its database key.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 8 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Fowler, "Value Object" (identity vs reference; immutability and the
+            aliasing bug) —
+            <a href="https://martinfowler.com/bliki/ValueObject.html"
+              >martinfowler.com/bliki/ValueObject.html</a
+            >.
+          </li>
+          <li>
+            Evans, DDD Reference (official materials) —
+            <a href="https://www.domainlanguage.com/ddd/reference/"
+              >domainlanguage.com/ddd/reference/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Entity</em>, <em>Value object</em>, <em>Invariant</em>).
+          </li>
+          <li>
+            Local files:
+            <a href="../src/domain/auth/User.entity.ts"
+              ><code>User.entity.ts</code></a
+            >,
+            <a href="../src/domain/auth/Email.vo.ts"><code>Email.vo.ts</code></a
+            >,
+            <a href="../src/domain/birth/BirthData.vo.ts"
+              ><code>BirthData.vo.ts</code></a
+            >,
+            <a href="../src/domain/chart/NatalChart.vo.ts"
+              ><code>NatalChart.vo.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-02.md"
+            ><code>learning-records/session-02.md</code></a
+          >: cold recall, decision card artifact, judged AI proposal (the UUID
+          question), verdict with evidence, confidence (1-5) and unresolved
+          question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 04 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="03-ubiquitous-language.html"
+          >Lesson 03 — Ubiquitous language</a
+        >
+        · Next: <a href="05-aggregate.html">Lesson 05 — Aggregate</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

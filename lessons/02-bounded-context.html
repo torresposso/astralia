@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 02 — Bounded Context: One Product, Three Models · Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 1 · Lesson 02</p>
+      <h1>Bounded context: one product, three models</h1>
+      <p class="subtitle">
+        The same word can mean different things in different parts of the
+        system. The <em>bounded context</em> is the border that keeps each
+        meaning reliable.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          What does the word <strong>"ticket"</strong> mean? On a bus, a ticket
+          gets you a seat. At a football match, a ticket gets you in the stadium
+          — and the price is different, the rules are different, and you cannot
+          use one on the other. Same word, two worlds.
+        </p>
+        <p>
+          Martin Fowler once worked with an electricity company where the word
+          <strong>"meter"</strong> meant four different things to four different
+          teams. They were not being sloppy — each team genuinely needed its own
+          meaning. The problem was that everyone pretended it was one concept.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will know what a
+          <strong>bounded context</strong> is, and you will be able to stop the
+          AI from spreading one concept across the whole repository.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              In Lesson 01, what was the city-map analogy for the domain model?
+              What did the map deliberately leave out?
+            </li>
+            <li>Is HTTP part of Astralia's domain model? Why not?</li>
+            <li>
+              Give one business rule from <code>BirthData.vo.ts</code> that you
+              remember.
+            </li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 4</p>
+          <ul>
+            <li>
+              <strong>Bounded context</strong> — a border around one model where
+              words have one meaning.
+            </li>
+            <li>
+              <strong>Context map</strong> — the picture of how contexts relate
+              and where translation happens.
+            </li>
+            <li>
+              <strong>Translation</strong> — converting one model's words into
+              another's at the border.
+            </li>
+            <li>
+              <strong>Polysemy</strong> — one word carrying several meanings at
+              once.
+            </li>
+          </ul>
+        </div>
+
+        <h3>Step 1 — A fence around one meaning</h3>
+        <p>
+          <strong>In plain words:</strong> a bounded context is a fence around
+          one meaning of a word. Inside the fence the word means exactly one
+          thing; outside it can mean something else.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a bounded context is a boundary
+          within which a model and its terms have one reliable, consistent
+          meaning; the same noun may not mean the same thing outside that
+          boundary.
+        </p>
+        <p>
+          <strong>The analogy — countries with borders:</strong> each country
+          has its own laws (rules) and its own language (terms). "Ticket" means
+          different things in transport and at a match. At the border you need
+          translation (context maps, anti-corruption layers). Each country can
+          change its own laws without consulting its neighbors.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Country borders are fixed on a map and take wars to move. Context
+            boundaries are a <em>design choice</em>: you draw them where the
+            meaning starts to drift, and you can redraw them later. They are
+            also invisible in the filesystem — nothing forces you to respect
+            them except discipline and tests.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A bounded context defines where one meaning stays reliable — a boundary of meaning, not of folders or data. Folders may suggest it, but a folder alone does not create a context; the meaning contract does."
+        >
+          <p class="quiz-question">What does a bounded context define?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Where one meaning stays
+                reliable.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Which folders hold all code.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Which database stores each
+                table.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 2 — Same noun, different models</h3>
+        <p>
+          <strong>In plain words:</strong> a word is not a thing — it is a
+          meaning that lives inside a context. Copying the same name around does
+          not make it the same concept.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> polysemy — one noun carrying
+          several meanings — is normal in business language; a bounded context
+          resolves it by binding each meaning to its own model.
+        </p>
+        <p>
+          <strong>The analogy:</strong> departments in a company. Marketing's
+          "Customer" is not Billing's "Customer": one wants to know what you
+          like, the other wants to know what you owe. Same word, different
+          world. In Astralia, "Email" in the Auth context is a user's unique
+          credential (validated, used to sign in). In a future messaging
+          context, "email" would be a message to send. Same noun, different
+          models.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Departments have a shared boss who can force a decision. Contexts do
+            not: each context keeps its own model, and the only bridge is
+            explicit translation at the border.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Each context gives its words a unique meaning — that is the whole point of the boundary. Folders and tables are physical organization; they do not define meaning."
+        >
+          <p class="quiz-question">Why is "email" different in Auth?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Each context gives words
+                unique meaning.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Because folders separate
+                files by purpose.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Different tables just store
+                different columns.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — The context map: draw the borders</h3>
+        <p>
+          <strong>In plain words:</strong> once you have contexts, you draw them
+          as boxes on a map and note where translation happens between boxes.
+          That picture is the context map.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> a context map shows how contexts
+          (or external systems) relate — which ones share data, which ones
+          translate, and where the seams are. It is the cartography of meaning.
+        </p>
+        <p>
+          <strong>The analogy:</strong> the customs desk at the border. Each
+          country keeps its own rules; translation happens only at the crossing.
+          Astralia's seam is the Caelus world: <code>CaelusBirthConverter</code>
+          translates birth data into UT terms at the border with an external
+          library.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A context map in DDD is also a <em>political</em> map: it records
+            who depends on whom, not just where the lines are. And unlike a
+            country's border, you may have several small contexts inside one
+            single repository — which is exactly Astralia's situation.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will draw the Astralia context map out loud, the way you will draw
+          yours in a minute. Read the folders with me:
+          <a href="../src/domain/"><code>src/domain/</code></a
+          >.
+        </p>
+        <p>
+          <em
+            >"First I look at src/domain/ and I notice three subfolders: auth,
+            birth, and chart. That is my first clue — three groups of files. But
+            folders are not proof, so I inspect what each group imports.
+          </em>
+        </p>
+        <ul>
+          <li>
+            <em
+              >"Auth: User.entity.ts, Email.vo.ts, Password.vo.ts — identity,
+              credentials, sessions. One world: who you are."</em
+            >
+          </li>
+          <li>
+            <em
+              >"Birth Data: BirthData.vo.ts, ports for the repository, the UT
+              converter, the geocoder — date, time, coordinates, timezone.
+              Another world: when and where you were born."</em
+            >
+          </li>
+          <li>
+            <em
+              >"Chart: NatalChart.vo.ts and friends, IChartCalculator — planets,
+              houses, aspects. A third world: what the sky said."</em
+            >
+          </li>
+        </ul>
+        <p>
+          <em
+            >"Now the key check: Auth does not import Chart or BirthData — it
+            stays isolated. But Chart is not fully isolated: its port
+            <a href="../src/domain/chart/ports/IChartCalculator.ts"
+              ><code>IChartCalculator.ts</code></a
+            >
+            imports Birth's types (<code>BirthData</code> and the UT converter's
+            data) to describe its input — a real edge worth knowing. The two
+            contexts are still separate models; the port just borrows the other
+            context's vocabulary, and the adapter translates at the
+            boundary."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> the same repository contains three
+          models, and nothing forces them to stay separate except the folders
+          and the import rules. That fragility is why we need tests to protect
+          the borders — a preview of Lesson 08.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three placement questions, with less help each time. Answer before
+          opening the suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — worked with me.</strong> Where does
+          <a href="../src/domain/auth/Email.vo.ts"><code>Email.vo.ts</code></a>
+          live — Auth, Birth Data, or Chart?
+        </p>
+        <p>
+          <em>My reasoning:</em> email is a credential: it must be unique and it
+          is used to sign in. That is identity — the Auth world. It cannot be
+          Birth Data (nobody was born with an email) or Chart (the sky does not
+          care). So: Auth.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            Auth. <code>Email.vo.ts</code> sits in
+            <code>src/domain/auth/</code>, and semantically it is a credential —
+            identity language, not birth or chart language.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — half-worked.</strong> Where does
+          <a href="../src/infrastructure/birth/DrizzleBirthDataRepository.ts"
+            ><code>DrizzleBirthDataRepository.ts</code></a
+          >
+          belong?
+        </p>
+        <p>
+          <em>Starter of the reasoning:</em> it persists something. Ask: which
+          domain type does it save — <code>BirthData</code>? Then the storage
+          belongs to the same world as that type…
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            Birth Data. It saves and loads <code>BirthData</code> records, so it
+            implements the <em>Birth Data</em> model's persistence port. The
+            implementation lives in infrastructure, but the context it serves is
+            Birth Data.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — your turn to finish.</strong> Where does the natal chart
+          calculation belong — the code that turns UT birth data into planets
+          and houses? Look at
+          <a href="../src/application/chart/CalculateChart.ts"
+            ><code>CalculateChart.ts</code></a
+          >.
+        </p>
+        <p>
+          <em>Start:</em> it produces a NatalChart, and its input is birth data
+          already converted to UT. The question is which world
+          <em>owns the output</em>. Complete the last step: since it creates a
+          NatalChart and uses chart value objects, it belongs to the ______
+          context, even though it <em>reads</em> birth data that was prepared
+          elsewhere.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            Chart. What the file produces and owns is a <code>NatalChart</code>;
+            the birth data it receives is an input from a neighboring context.
+            Reading across a border is normal — pretending they are one model is
+            not.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Draw three boxes (on paper or in your editor) and place each real
+          symbol inside the box it belongs to. Do not edit the repository; just
+          place. Add arrows only where you know a real flow.
+        </p>
+
+        <div class="context-grid">
+          <div class="context-box">
+            <h3>Auth</h3>
+            <ul>
+              <li>
+                <a href="../src/domain/auth/User.entity.ts"
+                  ><code>User.entity.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/auth/Email.vo.ts"
+                  ><code>Email.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/auth/Password.vo.ts"
+                  ><code>Password.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/auth/ports/IAuthRepository.ts"
+                  ><code>IAuthRepository.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/auth/SignIn.ts"
+                  ><code>SignIn.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/auth/SignUp.ts"
+                  ><code>SignUp.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/auth/SignOut.ts"
+                  ><code>SignOut.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/infrastructure/auth/BetterAuthRepository.ts"
+                  ><code>BetterAuthRepository.ts</code></a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="context-box">
+            <h3>Birth Data</h3>
+            <ul>
+              <li>
+                <a href="../src/domain/birth/BirthData.vo.ts"
+                  ><code>BirthData.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+                  ><code>IBirthDataRepository.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/birth/ports/IBirthToUTConverter.ts"
+                  ><code>IBirthToUTConverter.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/birth/ports/IGeocoder.ts"
+                  ><code>IGeocoder.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/birth/SaveBirthData.ts"
+                  ><code>SaveBirthData.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/birth/GetBirthData.ts"
+                  ><code>GetBirthData.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/birth/DeleteBirthData.ts"
+                  ><code>DeleteBirthData.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/birth/SearchCities.ts"
+                  ><code>SearchCities.ts</code></a
+                >
+              </li>
+              <li>
+                <a
+                  href="../src/infrastructure/birth/DrizzleBirthDataRepository.ts"
+                  ><code>DrizzleBirthDataRepository.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/infrastructure/birth/CaelusBirthConverter.ts"
+                  ><code>CaelusBirthConverter.ts</code></a
+                >
+              </li>
+              <li>
+                <a
+                  href="../src/infrastructure/birth/OpenMeteoGeocodingAdapter.ts"
+                  ><code>OpenMeteoGeocodingAdapter.ts</code></a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="context-box">
+            <h3>Chart</h3>
+            <ul>
+              <li>
+                <a href="../src/domain/chart/NatalChart.vo.ts"
+                  ><code>NatalChart.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/chart/PlanetPosition.vo.ts"
+                  ><code>PlanetPosition.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/chart/Angles.vo.ts"
+                  ><code>Angles.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/chart/HouseCusp.vo.ts"
+                  ><code>HouseCusp.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/chart/Aspect.vo.ts"
+                  ><code>Aspect.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/chart/AdditionalPoint.vo.ts"
+                  ><code>AdditionalPoint.vo.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/domain/chart/enums.ts"><code>enums.ts</code></a>
+              </li>
+              <li>
+                <a href="../src/domain/chart/ports/IChartCalculator.ts"
+                  ><code>IChartCalculator.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/application/chart/CalculateChart.ts"
+                  ><code>CalculateChart.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/infrastructure/chart/CaelusChartCalculator.ts"
+                  ><code>CaelusChartCalculator.ts</code></a
+                >
+              </li>
+              <li>
+                <a href="../src/infrastructure/chart/CaelusChartMapper.ts"
+                  ><code>CaelusChartMapper.ts</code></a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <p>Arrows we <strong>do</strong> know (don't invent others):</p>
+        <p class="flow">
+          signin.ts → SignIn → IAuthRepository → BetterAuthRepository
+        </p>
+        <p class="flow">
+          birth-data/create.ts → SaveBirthData → BirthData · IBirthToUTConverter
+          → CaelusBirthConverter · IBirthDataRepository →
+          DrizzleBirthDataRepository
+        </p>
+        <p class="flow">
+          chart/natal.ts → CalculateChart → IBirthDataRepository ·
+          IBirthToUTConverter · IChartCalculator → CaelusChartCalculator →
+          CaelusChartMapper
+        </p>
+        <p class="flow">
+          geo/search.ts → SearchCities → IGeocoder → OpenMeteoGeocodingAdapter
+        </p>
+
+        <details>
+          <summary>Suggested map (check after you try)</summary>
+          <ul>
+            <li>
+              <strong>Auth</strong>: <code>User</code>, <code>Email</code>,
+              <code>Password</code>, <code>IAuthRepository</code> in the domain;
+              <code>SignIn</code>/<code>SignUp</code>/<code>SignOut</code> in
+              application; <code>BetterAuthRepository</code> in infrastructure.
+            </li>
+            <li>
+              <strong>Birth Data</strong>: <code>BirthData.vo.ts</code> plus its
+              ports (<code>IBirthDataRepository</code>,
+              <code>IBirthToUTConverter</code>, <code>IGeocoder</code>); the use
+              cases <code>SaveBirthData</code>, <code>GetBirthData</code>,
+              <code>DeleteBirthData</code>, <code>SearchCities</code>; Drizzle,
+              Caelus and OpenMeteo adapters.
+            </li>
+            <li>
+              <strong>Chart</strong>: <code>NatalChart</code> and its supporting
+              VOs/enums, <code>IChartCalculator</code>,
+              <code>CalculateChart</code>,
+              <code>CaelusChartCalculator</code> and
+              <code>CaelusChartMapper</code>.
+            </li>
+            <li>
+              There is no shared "mega-model": Chart does not know
+              <code>Email</code>, Auth does not know <code>NatalChart</code>.
+            </li>
+          </ul>
+        </details>
+        <p>
+          Honest note:
+          <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> says that for now
+          it treats the whole application as a "single bounded context for now".
+          This lesson uses the pedagogical lens of three contexts; noticing that
+          discrepancy between the document and the map you draw is precisely the
+          DDD skill of "distrust the docs, inspect the code".
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            An Astralia <em>context map</em> — the tool with which you will tell
+            the AI which box each thing lives in before it touches a file.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "Astralia has three models: Auth, Birth Data, and Chart — I can
+            point to each box on my map."
+          </li>
+          <li>
+            "Same noun does not mean same concept: 'Email' belongs to Auth."
+          </li>
+          <li>
+            "The first architectural question is not 'which file?' but 'in which
+            context?'"
+          </li>
+        </ul>
+        <p>
+          <strong>Where the country-border analogy breaks (recap):</strong>
+          borders are fixed and physical; context boundaries are design choices,
+          invisible in the filesystem, and can be redrawn.
+        </p>
+        <p>
+          <strong>Next lesson:</strong> once you have borders, you need a shared
+          language inside them — ubiquitous language (words are architecture).
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Where should a new
+          Email rule go? — Name the context before the file."
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant:
+          <em>"Where should a new Email rule go?"</em> Demand that the answer
+          name a <strong>context before a file</strong> — for example "in the
+          Auth context, inside <code>Email.vo.ts</code>" — and explain why it
+          must not touch the Birth Data or Chart contexts. If it only answers
+          "in the Email file", it is choosing files, not models.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A bounded context is a boundary around one coherent business model: inside it, every term has a single meaning. “A folder containing all related application features” describes a physical grouping of code, not a boundary of meaning. “A database schema separating production and testing” describes data infrastructure, not model. In Astralia, Auth, Birth Data and Chart are three models with their own terms."
+        >
+          <p class="quiz-question">What is a bounded context?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> A boundary around one
+                coherent business model.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> A folder containing all
+                related application features.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> A database schema separating
+                production and testing.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 7 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Primary source: Eric Evans, DDD Reference (official materials) —
+            <a href="https://www.domainlanguage.com/ddd/reference/"
+              >domainlanguage.com/ddd/reference/</a
+            >.
+          </li>
+          <li>
+            Fowler, "Bounded Context" (the meter story) —
+            <a href="https://martinfowler.com/bliki/BoundedContext.html"
+              >martinfowler.com/bliki/BoundedContext.html</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (terms <em>Bounded context</em>, <em>Context map</em>,
+            <em>Ubiquitous language</em>).
+          </li>
+          <li>
+            Local authority:
+            <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> and the folders
+            under <a href="../src/domain/"><code>src/domain/</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before continuing, record the session in
+          <a href="../learning-records/session-01.md"
+            ><code>learning-records/session-01.md</code></a
+          >: context map artifact, judged AI proposal (the Email rule), verdict
+          with evidence, confidence (1-5) and unresolved question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 02 of 10</p>
+      <p class="meta-line">
+        Previous: <a href="01-domain-model.html">Lesson 01 — Domain model</a> ·
+        Next:
+        <a href="03-ubiquitous-language.html"
+          >Lesson 03 — Ubiquitous language</a
+        >
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>

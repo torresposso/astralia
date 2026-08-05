@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Astralia DDD Glossary · 18 terms</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Reference</p>
+      <h1>Astralia DDD Glossary</h1>
+      <p class="subtitle">
+        The 18 curriculum terms, in English, with a plain definition, a killer
+        analogy, and a real example from the repository. Absent concepts are
+        marked explicitly: no code is invented.
+      </p>
+    </header>
+
+    <main>
+      <p class="meta-line">
+        Vocabulary authority:
+        <a href="../CONTEXT.md"><code>CONTEXT.md</code></a
+        >. Layer contract:
+        <a href="../tests/architecture.test.ts"
+          ><code>tests/architecture.test.ts</code></a
+        >.
+      </p>
+
+      <section class="table-wrap">
+        <table>
+          <caption>
+            Glossary — 18 terms
+          </caption>
+          <thead>
+            <tr>
+              <th>Term</th>
+              <th>Plain definition + analogy</th>
+              <th>Example in Astralia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Domain</strong></td>
+              <td>
+                The problem space that matters to the business: what the
+                application must understand, not the technology it is built
+                with.
+                <p>
+                  Analogy: a bakery's domain is flour, ovens, and recipes — not
+                  the color of the delivery van.
+                </p>
+              </td>
+              <td>
+                Authenticating users, capturing birth data, and calculating the
+                natal chart. All under <code>src/domain/</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Domain model</strong></td>
+              <td>
+                The code-level map of the meaningful concepts and rules of the
+                problem; deliberately simplified.
+                <p>
+                  Analogy: a city map shows streets and landmarks, not every car
+                  and cable.
+                </p>
+              </td>
+              <td>
+                <a href="../src/domain/auth/User.entity.ts"
+                  ><code>User.entity.ts</code></a
+                >,
+                <a href="../src/domain/auth/Email.vo.ts"
+                  ><code>Email.vo.ts</code></a
+                >,
+                <a href="../src/domain/birth/BirthData.vo.ts"
+                  ><code>BirthData.vo.ts</code></a
+                >,
+                <a href="../src/domain/chart/NatalChart.vo.ts"
+                  ><code>NatalChart.vo.ts</code></a
+                >, chart enums and ports under <code>ports/</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Bounded context</strong></td>
+              <td>
+                A boundary within which a model and its vocabulary are valid and
+                have a single meaning; outside it the same word may mean
+                something else.
+                <p>
+                  Analogy: a border between countries — "ticket" means one thing
+                  on a bus and another at a football match.
+                </p>
+              </td>
+              <td>
+                Auth, Birth Data and Chart: three models in one repo, each with
+                its own <code>src/domain/&lt;context&gt;/</code>. Note:
+                <a href="../CONTEXT.md"><code>CONTEXT.md</code></a> declares
+                "single bounded context for now"; the curriculum uses the
+                three-context lens as a working map.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Context map</strong></td>
+              <td>
+                The map of how contexts or external systems relate to each
+                other, and where translation from one model to another happens.
+                <p>
+                  Analogy: the customs desk at the border — each side keeps its
+                  own rules, and translation happens only at the crossing.
+                </p>
+              </td>
+              <td>
+                The three boxes (Auth, Birth Data, Chart) plus the Caelus
+                translation seam around
+                <a href="../src/infrastructure/birth/CaelusBirthConverter.ts"
+                  ><code>CaelusBirthConverter.ts</code></a
+                >.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Ubiquitous language</strong></td>
+              <td>
+                The vocabulary shared between domain participants and code, used
+                consistently in conversations, docs, and identifiers.
+                <p>
+                  Analogy: a team dictionary that players and coaches both read,
+                  so "dough" never means two different things in one recipe.
+                </p>
+              </td>
+              <td>
+                <code>BirthData</code>, <code>NatalChart</code>,
+                <code>whole-sign</code>, <code>dst-ambiguous</code>,
+                <code>toUT</code>, <code>SearchCities</code> — anchored in
+                <a href="../CONTEXT.md"><code>CONTEXT.md</code></a
+                >.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Entity</strong></td>
+              <td>
+                An object with stable identity that persists through time and
+                through changes in its attributes.
+                <p>
+                  Analogy: you are still you at age 5 and age 50, though every
+                  cell changed.
+                </p>
+              </td>
+              <td>
+                <a href="../src/domain/auth/User.entity.ts"
+                  ><code>src/domain/auth/User.entity.ts</code></a
+                >
+                — two instances with the same id represent the same person;
+                <code>equals()</code> compares by id.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Value object</strong></td>
+              <td>
+                An object defined by its values, not by identity; normally
+                immutable and interchangeable.
+                <p>
+                  Analogy: two $5 bills are the same $5 — swapping one for the
+                  other changes nothing.
+                </p>
+              </td>
+              <td>
+                <a href="../src/domain/auth/Email.vo.ts"
+                  ><code>Email.vo.ts</code></a
+                >,
+                <a href="../src/domain/auth/Password.vo.ts"
+                  ><code>Password.vo.ts</code></a
+                >,
+                <a href="../src/domain/birth/BirthData.vo.ts"
+                  ><code>BirthData.vo.ts</code></a
+                >,
+                <a href="../src/domain/chart/NatalChart.vo.ts"
+                  ><code>NatalChart.vo.ts</code></a
+                >
+                and the other chart <code>.vo.ts</code> files.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Invariant</strong></td>
+              <td>
+                A rule that must remain true at a consistency boundary, no
+                matter what happens around it.
+                <p>
+                  Analogy: a fridge's rule — the inside temperature stays below
+                  the danger zone.
+                </p>
+              </td>
+              <td>
+                Validations in
+                <a href="../src/domain/birth/BirthData.vo.ts"
+                  ><code>BirthData.create()</code></a
+                >
+                (date 1800-today, lat -90..90, east-positive longitude, IANA
+                timezone), in <code>Email.vo.ts</code>, and in
+                <code>NatalChart.create()</code> (≥10 planets, 12 houses). The
+                <code>PLACIDUS</code> and <code>TROPICAL</code> enums constrain
+                the model; <em>Whole Sign</em> is not representable today.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Aggregate</strong></td>
+              <td>
+                A group of objects treated as a single consistency boundary:
+                they change together, and the group protects its own rules.
+                <p>
+                  Analogy: a checkout cart and its items — you do not reach in
+                  and change a price; the cart handles the whole group.
+                </p>
+              </td>
+              <td>
+                The persisted birth-data boundary is a candidate to analyze; the
+                current map does not name an explicit BirthData aggregate.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Aggregate root</strong></td>
+              <td>
+                The identity-bearing entry point that controls the aggregate;
+                outside it, the interior cannot be changed directly.
+                <p>
+                  Analogy: the castle gate — visitors enter only through it, not
+                  through the walls.
+                </p>
+              </td>
+              <td>
+                <strong
+                  >No aggregate root is demonstrated in the current map.</strong
+                >
+                <code>BirthData.vo.ts</code> is a Value Object by convention;
+                evidence of identity, lifecycle and invariants would be needed
+                to call it a root.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Repository</strong></td>
+              <td>
+                An inner-layer, collection-like interface for loading and saving
+                domain objects, hiding how and where they are stored.
+                <p>
+                  Analogy: ask the librarian for a book by title — you never
+                  walk into the storage room.
+                </p>
+              </td>
+              <td>
+                <a href="../src/domain/auth/ports/IAuthRepository.ts"
+                  ><code>IAuthRepository</code></a
+                >
+                and
+                <a href="../src/domain/birth/ports/IBirthDataRepository.ts"
+                  ><code>IBirthDataRepository</code></a
+                >;
+                <a
+                  href="../src/infrastructure/birth/DrizzleBirthDataRepository.ts"
+                  ><code>DrizzleBirthDataRepository</code></a
+                >
+                is the implementation.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Port</strong></td>
+              <td>
+                A contract owned by the domain/application that declares a
+                needed capability without saying how it is fulfilled.
+                <p>
+                  Analogy: a USB-C socket — it accepts any device with the right
+                  plug shape, no matter the brand.
+                </p>
+              </td>
+              <td>
+                <code>IAuthRepository</code>, <code>IBirthDataRepository</code>,
+                <a href="../src/domain/birth/ports/IBirthToUTConverter.ts"
+                  ><code>IBirthToUTConverter</code></a
+                >,
+                <a href="../src/domain/birth/ports/IGeocoder.ts"
+                  ><code>IGeocoder</code></a
+                >,
+                <a href="../src/domain/chart/ports/IChartCalculator.ts"
+                  ><code>IChartCalculator</code></a
+                >
+                — all under <code>ports/</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Adapter</strong></td>
+              <td>
+                An outer-layer implementation or translator that satisfies a
+                port.
+                <p>
+                  Analogy: the plug that makes one specific device fit the
+                  socket.
+                </p>
+              </td>
+              <td>
+                <a href="../src/infrastructure/auth/BetterAuthRepository.ts"
+                  ><code>BetterAuthRepository</code></a
+                >, <code>DrizzleBirthDataRepository</code>,
+                <code>CaelusBirthConverter</code>,
+                <a
+                  href="../src/infrastructure/birth/OpenMeteoGeocodingAdapter.ts"
+                  ><code>OpenMeteoGeocodingAdapter</code></a
+                >,
+                <a href="../src/infrastructure/chart/CaelusChartCalculator.ts"
+                  ><code>CaelusChartCalculator</code></a
+                >.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Use case / application service</strong></td>
+              <td>
+                An application-level coordinator for one user goal: it
+                orchestrates the flow using ports, without loose domain rules or
+                infrastructure details.
+                <p>
+                  Analogy: the waiter runs the order from table to kitchen and
+                  back; the chef decides the recipe.
+                </p>
+              </td>
+              <td>
+                <a href="../src/application/auth/SignIn.ts"
+                  ><code>SignIn</code></a
+                >,
+                <a href="../src/application/birth/SaveBirthData.ts"
+                  ><code>SaveBirthData</code></a
+                >, <code>GetBirthData</code>, <code>DeleteBirthData</code>,
+                <a href="../src/application/birth/SearchCities.ts"
+                  ><code>SearchCities</code></a
+                >,
+                <a href="../src/application/chart/CalculateChart.ts"
+                  ><code>CalculateChart</code></a
+                >.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Dependency rule</strong></td>
+              <td>
+                Code dependencies point toward policy and abstractions: outer
+                layers depend on inner ones, never the reverse.
+                <p>
+                  Analogy: the onion — the core does not know the skin exists.
+                </p>
+              </td>
+              <td>
+                Domain does not import infrastructure/pages/db; application does
+                not import infrastructure/pages/db; infrastructure does not
+                import application/pages — verified by
+                <a href="../tests/architecture.test.ts"
+                  ><code>tests/architecture.test.ts</code></a
+                >.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Anti-corruption layer / translator</strong></td>
+              <td>
+                A boundary that prevents an external model from leaking into the
+                domain, translating between two worlds.
+                <p>
+                  Analogy: a translator at a summit keeps each side speaking its
+                  own language.
+                </p>
+              </td>
+              <td>
+                <code>CaelusBirthConverter</code> translates birth data/local
+                time into UT/Caelus terms. Label it as a translation adapter; do
+                not claim a full ACL without more evidence.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Domain event</strong></td>
+              <td>
+                A record that something important already happened, so other
+                parts of the system can react without being asked to watch. It
+                is immutable and named in the past tense.
+                <p>
+                  Analogy: a wedding invitation — guests learn the wedding
+                  happened and react on their own; the couple does not call
+                  everyone.
+                </p>
+              </td>
+              <td>
+                Not modeled yet. The closest primitive is
+                <code>WarningCode[]</code> ('dst-ambiguous', 'whole-sign')
+                returned by
+                <a href="../src/application/birth/SaveBirthData.ts"
+                  ><code>SaveBirthData</code></a
+                >
+                — a "something happened" signal, not yet a full event.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Unit test / Integration test</strong></td>
+              <td>
+                A unit test proves one rule in isolation with plain inputs; an
+                integration test proves the plumbing between parts. Domain tests
+                should be the majority of the suite.
+                <p>
+                  Analogy: testing brakes on a bench (unit) versus driving
+                  through traffic (integration).
+                </p>
+              </td>
+              <td>
+                Bench: <code>BirthData.vo.test.ts</code>,
+                <code>NatalChart.vo.test.ts</code>. Plumbing:
+                <code>DrizzleBirthDataRepository.test.ts</code>. Layer police:
+                <a href="../tests/architecture.test.ts"
+                  ><code>tests/architecture.test.ts</code></a
+                >.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sources">
+        <h2>Links</h2>
+        <ul>
+          <li>
+            <a href="../MISSION.md"><code>MISSION.md</code></a> — success
+            criteria and the "no blind renames" rule.
+          </li>
+          <li>
+            <a href="../lessons/01-domain-model.html">Lesson 01</a> ·
+            <a href="../lessons/02-bounded-context.html">Lesson 02</a> ·
+            <a href="../lessons/03-ubiquitous-language.html">Lesson 03</a> ·
+            <a href="../lessons/04-entity-vs-value-object.html">Lesson 04</a> ·
+            <a href="../lessons/05-aggregate.html">Lesson 05</a> ·
+            <a href="../lessons/06-ports-adapters-repository.html">Lesson 06</a>
+            · <a href="../lessons/07-use-cases.html">Lesson 07</a> ·
+            <a href="../lessons/08-dependency-rule.html">Lesson 08</a> ·
+            <a href="../lessons/09-domain-events.html">Lesson 09</a> ·
+            <a href="../lessons/10-testing-the-domain.html">Lesson 10</a>
+          </li>
+          <li>
+            <a href="../RESOURCES.md"><code>RESOURCES.md</code></a> — study
+            path, resources, and sources per lesson.
+          </li>
+          <li>
+            Primary source:
+            <a href="https://www.domainlanguage.com/ddd/reference/"
+              >Evans — DDD Reference</a
+            >.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Reference glossary</p>
+    </footer>
+  </body>
+</html>

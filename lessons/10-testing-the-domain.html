@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Lesson 10 — Testing the Domain: The Brake Test Bench · Astralia DDD
+    </title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="kicker">Astralia · DDD Curriculum · Session 5 · Lesson 10</p>
+      <h1>Testing the domain: the brake test bench</h1>
+      <p class="subtitle">
+        You would not prove a brake works by driving into traffic — you bench
+        test the part. Domain tests do exactly that for business rules.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>1 · Hook — a question before any jargon</h2>
+        <p>
+          An airplane is certified with test benches: the engine is bolted to a
+          stand and run through every scenario — cold, hot, failure — before it
+          ever sees a runway. Nobody discovers the engine's stall behavior by
+          flying a full plane with passengers.
+        </p>
+        <p>
+          Domain tests are the engine bench. They call the business rules
+          directly — no HTTP, no database, no browser — and prove the rule under
+          every scenario. This lesson shows you Astralia's test bench and the
+          rule Protean warns about: the domain is usually the least tested
+          layer.
+        </p>
+        <p class="meta-line">
+          By the end of this lesson you will be able to classify any test in
+          Astralia, add a domain test case on paper, and veto test suites that
+          only exercise the domain through the HTTP pipeline.
+        </p>
+      </section>
+
+      <section class="retrieval">
+        <details>
+          <summary>60-second retrieval — before you read, write</summary>
+          <p class="timer">⏱ 60 seconds · blank page</p>
+          <p>Close this page and write, from memory and without looking:</p>
+          <ul>
+            <li>
+              What invariant does <code>BirthData.create()</code> guard, and
+              what does it return besides errors? (Lesson 05)
+            </li>
+            <li>
+              What did the architecture test forbid, and why is it executable?
+              (Lesson 08)
+            </li>
+            <li>What is the shape of a domain event? (Lesson 09)</li>
+          </ul>
+          <p>
+            Write first; open the material after. If you get stuck, note the
+            doubt — don't look yet.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>3 · The concept in small steps</h2>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">New words this lesson: 4</p>
+          <ul>
+            <li>
+              <strong>Unit test</strong> — exercises one behavior in isolation,
+              with plain inputs and no frameworks.
+            </li>
+            <li>
+              <strong>Integration test</strong> — exercises several parts
+              together, including a real adapter (DB, HTTP).
+            </li>
+            <li>
+              <strong>Test ladder</strong> — identify → modify → create: climb
+              from reading tests to writing new ones.
+            </li>
+            <li>
+              <strong>Given / When / Then</strong> — the universal test shape:
+              arrange, act, assert.
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout callout--remember">
+          <p class="callout-title">TS basics — unit vs integration</p>
+          <p>
+            A unit test calls one piece of code directly with plain inputs: a
+            function, a VO, a use case — no framework in sight. An integration
+            test runs several pieces together with real adapters: repository
+            plus Turso, route plus server. Same Vitest syntax; different blast
+            radius. The domain's tests should be units.
+          </p>
+        </div>
+
+        <h3>Step 1 — The test ladder in Astralia</h3>
+        <p>
+          <strong>In plain words:</strong> three kinds of tests share the repo:
+          unit tests for the domain, integration tests for the adapters, and an
+          architecture test that polices the layers.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> the test ladder is identify →
+          modify → create. First you identify which test covers which rule; then
+          you modify a case (change the expected value); finally you create a
+          new case following Given/When/Then.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Classifying Astralia's tests
+            </caption>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Kind</th>
+                <th>What it proves</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a href="../src/domain/birth/BirthData.vo.test.ts"
+                    ><code>BirthData.vo.test.ts</code></a
+                  >
+                </td>
+                <td>Unit (bench)</td>
+                <td>the invariant guard, errors, warnings</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../src/domain/chart/NatalChart.vo.test.ts"
+                    ><code>NatalChart.vo.test.ts</code></a
+                  >
+                </td>
+                <td>Unit (bench)</td>
+                <td>the chart VO's behavior</td>
+              </tr>
+              <tr>
+                <td>
+                  <a
+                    href="../src/infrastructure/birth/DrizzleBirthDataRepository.test.ts"
+                    ><code>DrizzleBirthDataRepository.test.ts</code></a
+                  >
+                </td>
+                <td>Integration</td>
+                <td>the adapter against a real DB</td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="../tests/architecture.test.ts"
+                    ><code>tests/architecture.test.ts</code></a
+                  >
+                </td>
+                <td>Layer police</td>
+                <td>every import edge points inward</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>The analogy — the brake test bench:</strong> a car's brakes
+          are proven on a bench with the wheel mounted, spun, clamped — not by
+          driving into traffic. Unit tests bench-test the part; integration
+          tests test the whole car on a track; neither skips the bench.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A brake bench has one fixture; test files grow many cases per
+            behavior. And the bench never ships in the car — tests do ship with
+            the code, forever.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="A bench test calls the part directly with plain inputs — no traffic, no HTTP, no DB. Unit tests for the domain do exactly this; integration tests add real adapters on top, never instead."
+        >
+          <p class="quiz-question">What does a bench test prove?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> The part behaves correctly on
+                its own.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> The full car works on every
+                road.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> The factory's paperwork is
+                complete and exact.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>
+          Step 2 — The domain is the least tested layer (Protean's warning)
+        </h3>
+        <p>
+          <strong>In plain words:</strong> when tests only go through the HTTP
+          pipeline, the domain rules get the least coverage of all — because
+          every scenario must cross the whole stack first.
+        </p>
+        <p>
+          <strong>Precise definition:</strong> Protean's pattern "testing domain
+          logic in isolation" warns that in layered applications the domain is
+          often the least tested part: teams test routes, repositories, and
+          controllers, and assume the rules are covered. Bench tests are the fix
+          — call the VO or the use case directly.
+        </p>
+        <p>
+          <strong>The analogy — the airplane simulator:</strong> pilots train in
+          simulators that recreate every failure — engine fire, wind shear,
+          instrument loss — before flying a real plane. Domain tests are the
+          simulator: cheap, safe, exhaustive.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            A simulator does not replace a maiden flight; integration tests
+            still matter. And simulators are expensive — domain tests are the
+            cheapest tests in the repo.
+          </p>
+        </div>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Domain tests call rules directly with plain inputs — no mocks, no HTTP, no DB. The pattern proves the VO and use cases on the bench, which is exactly where Protean says layered apps fail to test."
+        >
+          <p class="quiz-question">How do domain tests run?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> They call domain rules
+                directly with inputs.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> They click and assert the
+                page text.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> They run only against the
+                production database.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+
+        <h3>Step 3 — Given / When / Then is the universal shape</h3>
+        <p>
+          <strong>In plain words:</strong> every test is a mini-story: Given
+          (arrange the inputs), When (call the rule), Then (assert the outcome).
+        </p>
+        <p>
+          <strong>Precise definition:</strong> Given/When/Then structures a test
+          as arrange-act-assert: set up inputs, invoke the behavior once, check
+          the result. The same shape works for a VO guard, a use case result, or
+          an architecture edge.
+        </p>
+        <p>
+          <strong>The analogy — the recipe (Lesson 07):</strong> Given the
+          ingredients, when the cook follows the recipe, then the dish is
+          served. Tests are recipes with a verdict.
+        </p>
+        <div class="callout callout--remember">
+          <p class="callout-title">Where this analogy stops being true</p>
+          <p>
+            Recipes are forgiving; tests are not — a single failed assertion
+            fails the build. And recipes have one outcome; tests encode the
+            expected outcome explicitly.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>4 · Worked example — I do</h2>
+        <p>
+          I will read two domain tests and one integration test out loud and
+          classify them. Follow the reasoning; you will modify a test case
+          yourself.
+        </p>
+        <ul class="sources">
+          <li>
+            <a href="../src/domain/birth/BirthData.vo.test.ts"
+              ><code>BirthData.vo.test.ts</code></a
+            >
+            — unit: calls <code>BirthData.create()</code> directly, asserts
+            errors and warnings, no frameworks.
+          </li>
+          <li>
+            <a href="../src/domain/chart/NatalChart.vo.test.ts"
+              ><code>NatalChart.vo.test.ts</code></a
+            >
+            — unit: exercises the chart VO's behavior on the bench.
+          </li>
+          <li>
+            <a
+              href="../src/infrastructure/birth/DrizzleBirthDataRepository.test.ts"
+              ><code>DrizzleBirthDataRepository.test.ts</code></a
+            >
+            — integration: runs the adapter against a real DB and asserts the
+            persistence contract.
+          </li>
+          <li>
+            <a href="../tests/architecture.test.ts"
+              ><code>tests/architecture.test.ts</code></a
+            >
+            — layer police: no unit or integration label, it polices edges.
+          </li>
+        </ul>
+        <p>
+          <em
+            >"First, the bench. BirthData.vo.test.ts imports the VO and calls
+            create() with inputs; it asserts the returned warnings and errors.
+            Given valid data, when create() runs, then ok; given data in a DST
+            gap, when create() runs, then the warning appears. Plain function
+            calls — no Vitest mocks, no HTTP."</em
+          >
+        </p>
+        <p>
+          <em
+            >"Second, the integration. DrizzleBirthDataRepository.test.ts needs
+            a real database, because it proves the adapter fulfills the port's
+            contract. If it used a fake, it would prove the fake, not the
+            Drizzle code."</em
+          >
+        </p>
+        <p>
+          <strong>What I noticed:</strong> the bench tests are the cheapest and
+          most numerous; the integration tests are fewer and slower. The ladder:
+          identify what each covers, modify a case, then create a new one —
+          never delete the bench.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Guided practice — we do</h2>
+        <p>
+          Three ladder steps with less help each time. Answer before opening the
+          suggestion.
+        </p>
+
+        <p>
+          <strong>Q1 — identify, worked with me.</strong> Which test would prove
+          "BirthData rejects a nonexistent local time"?
+        </p>
+        <p>
+          <em>My reasoning:</em> that is a rule inside the VO. The bench test
+          calls <code>BirthData.create()</code> directly and asserts the error.
+          The integration test would only prove the rule survives a round trip —
+          slower, no extra truth.
+        </p>
+        <details>
+          <summary>Answer 1 — check after you try</summary>
+          <p>
+            The unit test in <code>BirthData.vo.test.ts</code> — the rule lives
+            in the VO and is bench-tested there.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q2 — modify, half-worked.</strong> Open
+          <code>BirthData.vo.test.ts</code> and find a case for the DST gap.
+          Complete the thought: the test arranges data in the gap, acts by
+          calling ______, and asserts the ______. On paper, write what you would
+          change if the gap behavior changed.
+        </p>
+        <details>
+          <summary>Answer 2 — check after you try</summary>
+          <p>
+            The test arranges gap data, acts by calling
+            <code>BirthData.create()</code>, and asserts the expected
+            error/warning. A behavior change means changing the expected value
+            in the test — on paper, that is the modify step of the ladder.
+          </p>
+        </details>
+
+        <p>
+          <strong>Q3 — create, your turn to finish.</strong> Write a new test
+          case on paper in Given/When/Then for a rule you choose.
+        </p>
+        <p>
+          <em>Start:</em> pick a rule from Lessons 05-09 — the invariant guard,
+          the DST policy, or the converter gating. Complete the shape: Given
+          ______; when ______; then ______. State which file would host the new
+          case.
+        </p>
+        <details>
+          <summary>Answer 3 — check after you try</summary>
+          <p>
+            Any valid rule with the three clauses — e.g., Given birth data in an
+            ambiguous local time; when create() runs; then the warning includes
+            dst-ambiguous. The new case belongs in
+            <code>BirthData.vo.test.ts</code> (or the corresponding domain test
+            file), never only in an integration test.
+          </p>
+        </details>
+      </section>
+
+      <section>
+        <h2>6 · Independent practice — you do</h2>
+        <p>
+          Climb the ladder fully on paper. Reopen
+          <a href="../src/domain/birth/BirthData.vo.test.ts"
+            ><code>BirthData.vo.test.ts</code></a
+          >
+          and
+          <a href="../tests/architecture.test.ts"
+            ><code>tests/architecture.test.ts</code></a
+          >, then fill the card in your notebook. Do not edit the repository.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>
+              Test ladder card
+            </caption>
+            <thead>
+              <tr>
+                <th>Step</th>
+                <th>Your answer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Identify: which test covers the invariant guard?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Modify: what would change if the gap became an error?</td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>
+                  Create: new case in Given/When/Then (host file included)
+                </td>
+                <td class="empty-cell">…</td>
+              </tr>
+              <tr>
+                <td>Check: run the architecture test locally</td>
+                <td class="empty-cell">…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Hints:</p>
+        <ul>
+          <li>
+            Run
+            <code>npx vitest run src/domain/birth/BirthData.vo.test.ts</code>
+            and <code>npx vitest run tests/architecture.test.ts</code> to see
+            both green.
+          </li>
+          <li>
+            The modify step never touches production code — it changes the
+            test's expectation on paper.
+          </li>
+          <li>
+            The create step must call the domain directly — no mocks, no HTTP,
+            no DB.
+          </li>
+        </ul>
+        <div class="callout callout--remember">
+          <p class="callout-title">Tangible win</p>
+          <p>
+            A completed ladder card plus two green test runs — the proof you can
+            identify, modify, and create domain tests, and know why the bench
+            matters.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>7 · Feedback + wrap-up</h2>
+        <p><strong>You should now be able to say:</strong></p>
+        <ul>
+          <li>
+            "Unit tests bench-test the domain with plain inputs; integration
+            tests prove adapters; the architecture test polices the layers."
+          </li>
+          <li>
+            "The domain is the least tested layer when tests only go through
+            HTTP — bench tests are the fix."
+          </li>
+          <li>
+            "Every test is a Given/When/Then story, and I can climb the ladder:
+            identify, modify, create."
+          </li>
+        </ul>
+        <p>
+          <strong>Where the brake bench analogy breaks (recap):</strong> benches
+          never ship in the car — tests ship with the code. And the bench does
+          not replace the maiden flight: integration tests still matter.
+        </p>
+        <p>
+          <strong>Course complete:</strong> ten lessons from domain model to
+          testing the domain. Revisit
+          <a href="01-domain-model.html">Lesson 01</a> and watch yourself
+          recognize every term.
+        </p>
+        <p>
+          <strong>Spaced question to remember:</strong> "Which test proves this
+          rule — and does it call the rule directly?"
+        </p>
+      </section>
+
+      <section class="callout callout--drill">
+        <p class="callout-title">AI Drill — try it with the AI</p>
+        <p>
+          Ask your assistant to add coverage for a new domain rule — for
+          example:
+          <em
+            >"Add a test case for a new birth rule in BirthData.vo.test.ts
+            without using any mocking framework."</em
+          >
+          Judge the proposal: the test must call the VO or use case directly
+          with plain inputs, follow Given/When/Then, and live in the domain test
+          file — never only behind an HTTP route test. Veto any suite that
+          exercises the domain exclusively through the pipeline.
+        </p>
+      </section>
+
+      <section>
+        <h2>Mini quiz</h2>
+        <div
+          class="quiz"
+          data-correct="0"
+          data-explain="Domain tests call rules directly with plain inputs — the bench, not the traffic. Option B wires every domain scenario through the HTTP pipeline, which is Protean's warning. Option C makes assertions depend on live external systems. In Astralia: BirthData.vo.test.ts is the bench."
+        >
+          <p class="quiz-question">What defines a domain test?</p>
+          <ul class="quiz-options">
+            <li>
+              <button type="button" class="quiz-option" data-index="0">
+                <span class="quiz-letter">A</span> Domain tests call rules
+                directly with inputs.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="1">
+                <span class="quiz-letter">B</span> Tests run every rule through
+                a pipeline.
+              </button>
+            </li>
+            <li>
+              <button type="button" class="quiz-option" data-index="2">
+                <span class="quiz-letter">C</span> Tests assert against live
+                production database state.
+              </button>
+            </li>
+          </ul>
+          <p class="quiz-feedback" role="status" aria-live="polite"></p>
+        </div>
+        <p class="meta-line">
+          All three options have exactly 7 words: the difference lies in
+          meaning, not length.
+        </p>
+      </section>
+
+      <section class="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            Protean HQ, "Testing domain logic in isolation" — the warning that
+            the domain is the least tested layer —
+            <a
+              href="https://docs.proteanhq.com/patterns/testing-domain-logic-in-isolation/"
+              >docs.proteanhq.com/patterns/testing-domain-logic-in-isolation/</a
+            >.
+          </li>
+          <li>
+            Evans, official Domain-Driven Design materials —
+            <a href="https://www.domainlanguage.com/ddd/"
+              >domainlanguage.com/ddd/</a
+            >.
+          </li>
+          <li>
+            Glossary of terms:
+            <a href="../reference/glossary-ddd-astralia.html"
+              >Astralia DDD glossary</a
+            >
+            (term <em>Unit test / Integration test</em>).
+          </li>
+          <li>
+            Local files:
+            <a href="../src/domain/birth/BirthData.vo.test.ts"
+              ><code>BirthData.vo.test.ts</code></a
+            >,
+            <a href="../src/domain/chart/NatalChart.vo.test.ts"
+              ><code>NatalChart.vo.test.ts</code></a
+            >,
+            <a
+              href="../src/infrastructure/birth/DrizzleBirthDataRepository.test.ts"
+              ><code>DrizzleBirthDataRepository.test.ts</code></a
+            >,
+            <a href="../tests/architecture.test.ts"
+              ><code>tests/architecture.test.ts</code></a
+            >.
+          </li>
+        </ul>
+      </section>
+
+      <section class="callout callout--checkpoint">
+        <p class="callout-title">Record checkpoint</p>
+        <p>
+          Before closing the course, record the session in
+          <a href="../learning-records/session-05.md"
+            ><code>learning-records/session-05.md</code></a
+          >: cold recall, ladder card, green test runs, judged AI proposal
+          (no-mock domain test), verdict with evidence, confidence (1-5) and
+          unresolved question.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mastfoot">
+      <p>Astralia · DDD Curriculum · Lesson 10 of 10</p>
+      <p class="meta-line">
+        Previous:
+        <a href="09-domain-events.html">Lesson 09 — Domain events</a>
+      </p>
+    </footer>
+
+    <script src="../assets/quiz.js"></script>
+  </body>
+</html>
